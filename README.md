@@ -33,6 +33,12 @@ Enter the directory ( • ⩊ • )
 
 ### Prepare the environment
 
+Install the required python version (ﾉ◕ヮ◕)ﾉ*:･ﾟ✧
+
+```console
+> uv python install $(cat ./.python-version)
+```
+
 Install the deps Σ(°ロ°)
 
 ```console
