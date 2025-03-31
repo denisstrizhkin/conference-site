@@ -9,5 +9,19 @@ router: APIRouter = APIRouter()
 @router.get("/", response_class=HTMLResponse)
 async def index(templates: Templates, request: Request):
     return templates.TemplateResponse(
-        request=request, name="index.jinja", context={"title": "Rika mi mi nipah"}
+        request=request, name="index.jinja", context={"title": "StudConfAU"}
+    )
+
+
+@router.get("/about", response_class=HTMLResponse)
+async def about(templates: Templates, request: Request):
+    return templates.TemplateResponse(
+        request=request, name="about.jinja", context={"title": "StudConfAU"}
+    )
+
+
+@router.get("/participants", response_class=HTMLResponse)
+async def participants(templates: Templates, request: Request):
+    return templates.TemplateResponse(
+        request=request, name="participants.jinja", context={"title": "StudConfAU"}
     )
