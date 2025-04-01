@@ -1,0 +1,42 @@
+{% extends "base.jinja" %}
+
+{% block title %}{{title}}{% endblock %}
+
+{% block main %}
+    <div class="container-fluid p-5">
+        <div class="d-grid gap-4 d-md-flex justify-content-md-center ms-4">
+            <div class="col-md-9 text-center d-md-flex justify-content-center">
+                <div class="card" style="width: 40rem;">
+                    <h4 class="card-header">Вход</h4>
+                    <div class="card-body">
+                        <form>
+                            <div class="mb-3">
+                                <label for="exampleInputEmail1" class="form-label">Email address</label>
+                                <input type="email" class="form-control" id="InputEmail1" aria-describedby="emailHelp">
+                                <div id="emailHelp" class="form-text">Мы никогда никому не передадим ваш адрес эл. почты!</div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="InputPassword1" class="form-label">Password</label>
+                                <input type="password" class="form-control" id="exampleInputPassword1">
+                            </div>
+                            <button type="submit" class="btn btn-primary">Submit</button>
+                        </form>
+                    </div> 
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <div class="border border-success rounded-3 p-3">
+                    <ul>
+                        <li class="pb-2 fs-5">Начало регистрации - 2 апреля 2025 года</li>
+                        <li class="pb-2 fs-5">Окончание приема заявок - 2 мая 2025 года</li>
+                        <li class="pb-2 fs-5">Начало конференции - 12 мая 2025 года</li>
+                    </ul>
+                </div>
+                <div class="text-center">
+                    <img class="p-2" src="https://i.pinimg.com/originals/5e/45/ce/5e45ce6797d217f8bec5b332f7f4db86.gif"/>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
