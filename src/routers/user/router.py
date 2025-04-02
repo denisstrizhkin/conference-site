@@ -1,4 +1,5 @@
 from typing import Annotated
+import logging
 
 from fastapi import APIRouter, Depends, Path, Query, status, Request, Form
 from fastapi.responses import HTMLResponse, RedirectResponse
@@ -7,6 +8,7 @@ from sqlmodel import select
 from src.db import AsyncSession
 from src.depends import Templates
 from .models import User
+from .auth import CurrentUser
 
 router = APIRouter()
 
@@ -32,7 +34,13 @@ async def create_user(
 
 
 @router.get("/", response_class=HTMLResponse)
-async def get_users(templates: Templates, request: Request, session: AsyncSession):
+async def get_users(
+    templates: Templates,
+    request: Request,
+    session: AsyncSession,
+    current_user: CurrentUser,
+):
+    logging.info(current_user)
     async with session() as session:
         result = await session.execute(select(User))
     users = result.scalars().all()
