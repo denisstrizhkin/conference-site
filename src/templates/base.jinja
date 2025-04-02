@@ -4,21 +4,21 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{% block title %}{% endblock title %}</title>
-    <link href="static/css/bootstrap.min.css" rel="stylesheet" />
-    <link href="static/css/bootstrap-icons.min.css" rel="stylesheet" />
-    <link href="static/css/style.css" rel="stylesheet" />
+    <link href="/static/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="/static/css/bootstrap-icons.min.css" rel="stylesheet" />
+    <link href="/static/css/style.css" rel="stylesheet" />
   </head>
   <body>
       <div class="container-xl px-0">
           <header>
               <div class="text-center" style="background-color: rgba(36, 77, 40, 0.8)">
-              <img src="static/img/banner.png" class="img-fluid rounded-3">
+              <img src="/static/img/banner.png" class="img-fluid rounded-3">
               </div>
           </header>
           <header class="navbar navbar-expand-md bd-navbar" style="background-color: rgba(36, 77, 40, 0.8)">
               <nav class="container-xxl flex-wrap flex-md-nowrap">
                   <a class="navbar-brand p-0 me-5" href="/">
-                      <img src="static/img/logo1.svg" width="64" height="80" class="d-block my-1"> 
+                      <img src="/static/img/logo1.svg" width="64" height="80" class="d-block my-1"> 
                   </a>
                   <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#bdNavbar" aria-controls="bdNavbar" aria-extended="false">
                       <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" class="bi" fill="white" viewBox="0 0 16 16">
@@ -51,6 +51,6 @@
               {% block main %}{% endblock %}
           </main>
     </div>
-    <script src="static/js/bootstrap.bundle.min.js"></script>
+    <script src="/static/js/bootstrap.bundle.min.js"></script>
   </body>
 </html>
