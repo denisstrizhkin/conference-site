@@ -17,13 +17,15 @@ from src.depends import Templates
 from .models import User
 from .auth import create_access_token, CurrentUser
 
-router = APIRouter()
+router = APIRouter(prefix="/user")
 
 
 @router.get("/register", response_class=HTMLResponse)
 async def register_form(templates: Templates, request: Request):
     return templates.TemplateResponse(
-        request=request, name="user/register.jinja", context={"title": "StudConfAU"}
+        request=request,
+        name="user/register.jinja",
+        context={"title": "StudConfAU"},
     )
 
 
@@ -49,13 +51,17 @@ async def register(
             context={"title": "StudConfAU", "error": error},
         )
 
-    return RedirectResponse(url="/user/login", status_code=status.HTTP_303_SEE_OTHER)
+    return RedirectResponse(
+        url="/user/login", status_code=status.HTTP_303_SEE_OTHER
+    )
 
 
 @router.get("/login", response_class=HTMLResponse)
 async def login_form(templates: Templates, request: Request):
     return templates.TemplateResponse(
-        request=request, name="user/login.jinja", context={"title": "StudConfAU"}
+        request=request,
+        name="user/login.jinja",
+        context={"title": "StudConfAU"},
     )
 
 
@@ -73,14 +79,17 @@ async def login(
         user = result.first()
     if user is None:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="Bad email or password"
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Bad email or password",
         )
     logging.info(user)
 
     token, expires = create_access_token(user)
 
     # Set cookie with token
-    response = RedirectResponse(url="/user", status_code=status.HTTP_303_SEE_OTHER)
+    response = RedirectResponse(
+        url="/user", status_code=status.HTTP_303_SEE_OTHER
+    )
     response.set_cookie(
         key="access_token",
         value=f"Bearer {token}",
@@ -103,7 +112,9 @@ async def get_users(
     logging.info(current_user)
     if current_user is None:
         return templates.TemplateResponse(
-            request=request, name="user/login.jinja", context={"title": "StudConfAU"}
+            request=request,
+            name="user/login.jinja",
+            context={"title": "StudConfAU"},
         )
 
     async with session() as session:

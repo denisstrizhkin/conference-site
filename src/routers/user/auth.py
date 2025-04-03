@@ -5,7 +5,6 @@ import logging
 
 from jose import jwt, JWTError
 from fastapi import Depends, Request
-from fastapi.security import OAuth2PasswordBearer
 from pydantic import BaseModel
 from sqlmodel import select
 from sqlalchemy.exc import SQLAlchemyError
@@ -13,8 +12,6 @@ from sqlalchemy.exc import SQLAlchemyError
 from .models import User
 from src.db import AsyncSession
 from src.settings import settings
-
-oauth2_schema = OAuth2PasswordBearer(tokenUrl="token")
 
 
 class Token(BaseModel):

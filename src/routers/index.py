@@ -23,7 +23,9 @@ async def about(templates: Templates, request: Request):
 @router.get("/participants", response_class=HTMLResponse)
 async def participants(templates: Templates, request: Request):
     return templates.TemplateResponse(
-        request=request, name="participants.jinja", context={"title": "StudConfAU"}
+        request=request,
+        name="participants.jinja",
+        context={"title": "StudConfAU"},
     )
 
 
