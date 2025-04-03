@@ -6,7 +6,6 @@ from fastapi import (
     status,
     Request,
     Form,
-    HTTPException,
 )
 from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlmodel import select
@@ -99,6 +98,20 @@ async def login(
         httponly=True,
         max_age=expires,
         secure=True,  # Set to True in production with HTTPS
+        samesite="lax",
+    )
+
+    return response
+
+
+@router.post("/logout")
+async def logout_user():
+    response = RedirectResponse(url="/", status_code=status.HTTP_303_SEE_OTHER)
+    # Remove the access token cookie
+    response.delete_cookie(
+        key="access_token",
+        httponly=True,
+        secure=True,  # For HTTPS
         samesite="lax",
     )
 

@@ -8,4 +8,11 @@
     <li>{{ user.email }}</li>
 {% endfor %}
 </ul>
+
+<form action="/user/logout" method="post" class="d-inline">
+  <button type="submit" class="btn btn-danger">
+    <i class="bi bi-box-arrow-right"></i> Logout
+  </button>
+</form>
+
 {% endblock %}
