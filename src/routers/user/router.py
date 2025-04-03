@@ -74,15 +74,18 @@ async def login(
     templates: Templates,
 ):
     stmt = select(User).where(User.email == email, User.password == password)
-    async with session() as session:
-        result = await session.execute(stmt)
-        user = result.first()
-    if user is None:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Bad email or password",
+    try:
+        async with session() as session:
+            result = await session.execute(stmt)
+            user = result.one()[0]
+    except SQLAlchemyError as e:
+        error = e._message()
+        logging.error(e)
+        return templates.TemplateResponse(
+            request=request,
+            name="user/login.jinja",
+            context={"title": "StudConfAU", "error": error},
         )
-    logging.info(user)
 
     token, expires = create_access_token(user)
 

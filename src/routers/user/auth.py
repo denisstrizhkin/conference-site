@@ -21,16 +21,13 @@ class Token(BaseModel):
 
 def create_access_token(user: User) -> tuple[str, datetime]:
     expires = datetime.utcnow() + timedelta(minutes=settings.jwt_expire_minutes)
-    to_encode = Token(user=user, expires=expires).model_dump_json()
+    token = Token(user=user, expires=expires)
+    to_encode = token.model_dump_json()
     to_encode = json.loads(to_encode)
     encoded_jwt = jwt.encode(
         to_encode, settings.jwt_secret, algorithm=settings.jwt_algorithm
     )
     return encoded_jwt, expires
-
-
-def decode_token(token: str) -> User:
-    return User(id=0, email="rika@example.com", password="huika")
 
 
 async def get_current_user(
@@ -44,14 +41,15 @@ async def get_current_user(
 
     try:
         payload = jwt.decode(
-            token, settings.jwt_secret, algorithms=[settings.jwt_algorithm]
+            token[7:], settings.jwt_secret, algorithms=[settings.jwt_algorithm]
         )
-        logging.info(payload)
-        user = payload.user
+        token = Token(**payload)
+        user = token.user
     except JWTError as e:
         logging.error(e)
         return None
 
+    logging.error(user)
     try:
         stmt = select(User).where(
             User.email == user.email, User.password == user.password

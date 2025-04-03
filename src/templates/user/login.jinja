@@ -3,6 +3,7 @@
 {% block title %}{{title}}{% endblock %}
 
 {% block main %}
+<p>{{error}}</p>
 <form id="registrationForm" action="/user/login" method="POST">
     <div class="mb-3">
         <label class="form-label">Email address
@@ -21,7 +22,7 @@
     </div>
     
     <div class="d-grid gap-2">
-        <button type="submit" class="btn btn-primary btn-lg">Register</button>
+        <button type="submit" class="btn btn-primary btn-lg">Sign in</button>
     </div>    
 </form>
 {% endblock %}
