@@ -13,6 +13,9 @@ BASE_DIR = Path(__file__).parent.parent
 class Settings(BaseSettings):
     echo_sql: bool
     db_uri: str = f"sqlite+aiosqlite:///{BASE_DIR / "data.db"}"
+    jwt_secret: str
+    jwt_algorithm: str
+    jwt_expire_minutes: int
 
     model_config = SettingsConfigDict(
         toml_file=BASE_DIR / "settings.toml",

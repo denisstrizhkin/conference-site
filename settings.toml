@@ -1,1 +1,4 @@
 echo_sql = true
+jwt_secret = "123456"
+jwt_algorithm = "HS256"
+jwt_expire_minutes = "60"
