@@ -5,6 +5,8 @@ from sqlmodel import SQLModel, Field, UniqueConstraint
 class UserRole(StrEnum):
     admin = auto()
     basic = auto()
+    participant = auto()
+    viewer = auto()
 
 
 class User(SQLModel, table=True):

@@ -64,12 +64,10 @@ async def get_current_user(
 
     logging.error(user)
     try:
-        stmt = select(User).where(
-            User.email == user.email, User.password == user.password
-        )
+        stmt = select(User).where(User.email == user.email)
         async with session() as session:
             result = await session.execute(stmt)
-            user = result.first()
+            user = result.one()[0]
     except SQLAlchemyError as e:
         logging.error(e)
         return None

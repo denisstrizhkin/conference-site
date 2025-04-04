@@ -9,11 +9,11 @@ from fastapi import (
 )
 from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlmodel import select
-from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 
 from src.db import AsyncSession
 from src.depends import Templates
-from .models import User
+from .models import User, UserRole
 from .auth import create_access_token, CurrentUser, PassHasher
 
 router = APIRouter(prefix="/user")
@@ -37,13 +37,20 @@ async def register(
     templates: Templates,
 ):
     user = User(email=email, password=PassHasher.get_password_hash(password))
+
+    error: str | None = None
     try:
         async with session() as session:
             session.add(user)
             await session.commit()
+    except IntegrityError as e:
+        error = "Такой пользователь уже сущевствует"
+        logging.error(e)
     except SQLAlchemyError as e:
         error = e._message()
         logging.error(e)
+
+    if error is not None:
         return templates.TemplateResponse(
             request=request,
             name="user/register.jinja",
@@ -83,7 +90,7 @@ async def login(
         logging.error(e)
 
     if not PassHasher.verify_password(password, user.password):
-        error = "Wrong email or password"
+        error = "Неправильная почта или пароль"
 
     if error is not None:
         return templates.TemplateResponse(
@@ -96,7 +103,7 @@ async def login(
 
     # Set cookie with token
     response = RedirectResponse(
-        url="/user", status_code=status.HTTP_303_SEE_OTHER
+        url="/user/account", status_code=status.HTTP_303_SEE_OTHER
     )
     response.set_cookie(
         key="access_token",
@@ -111,7 +118,7 @@ async def login(
 
 
 @router.post("/logout")
-async def logout_user():
+async def logout():
     response = RedirectResponse(url="/", status_code=status.HTTP_303_SEE_OTHER)
     # Remove the access token cookie
     response.delete_cookie(
@@ -122,6 +129,43 @@ async def logout_user():
     )
 
     return response
+
+
+@router.get("/account", response_class=HTMLResponse)
+async def account(
+    templates: Templates,
+    request: Request,
+    session: AsyncSession,
+    current_user: CurrentUser,
+):
+    if current_user is None:
+        return templates.TemplateResponse(
+            request=request,
+            name="user/login.jinja",
+            context={"title": "StudConfAU"},
+        )
+
+    roles: list[tuple[str, str]] = list()
+    if current_user.role == UserRole.admin:
+        roles = [
+            (UserRole.admin, "Админ"),
+        ]
+    else:
+        roles = [
+            (UserRole.basic, "Не учавствую"),
+            (UserRole.viewer, "Зритель"),
+            (UserRole.participant, "Участник"),
+        ]
+
+    return templates.TemplateResponse(
+        request=request,
+        name="user/account.jinja",
+        context={
+            "title": "StudConfAU",
+            "user": current_user,
+            "roles": roles,
+        },
+    )
 
 
 @router.get("/", response_class=HTMLResponse)

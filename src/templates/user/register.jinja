@@ -6,23 +6,24 @@
 <p>{{error}}</p>
 <form id="registrationForm" action="/user/register" method="POST">
     <div class="mb-3">
-        <label class="form-label">Email address
+        <label class="form-label">Адресс электронной почты
         <input
           type="email" class="form-control" name="email"
-          placeholder="Enter your email" required
+          placeholder="Введите почту" required
         >
         </label>
     </div>
     
     <div class="mb-3">
-        <label class="form-label">Password
+        <label class="form-label">Пароль
         <input type="password" class="form-control" name="password"
-               placeholder="Create a password" required>
+               placeholder="Введите пароль" required>
         </label>
     </div>
     
     <div class="d-grid gap-2">
-        <button type="submit" class="btn btn-primary btn-lg">Register</button>
+        <button type="submit" class="btn btn-primary btn-lg">Зарегистрироваться</button>
     </div>    
 </form>
+<p>Уже есть аккаунт? <a href="/user/login">Войти</a></p>
 {% endblock %}
