@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 import json
 import logging
 
+from passlib.context import CryptContext
 from jose import jwt, JWTError
 from fastapi import Depends, Request
 from pydantic import BaseModel
@@ -12,6 +13,18 @@ from sqlalchemy.exc import SQLAlchemyError
 from .models import User
 from src.db import AsyncSession
 from src.settings import settings
+
+
+class PassHasher:
+    _context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+    @staticmethod
+    def verify_password(plain_password: str, hashed_password: str) -> bool:
+        return PassHasher._context.verify(plain_password, hashed_password)
+
+    @staticmethod
+    def get_password_hash(password: str) -> str:
+        return PassHasher._context.hash(password)
 
 
 class Token(BaseModel):

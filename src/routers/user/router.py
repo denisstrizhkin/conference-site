@@ -14,7 +14,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from src.db import AsyncSession
 from src.depends import Templates
 from .models import User
-from .auth import create_access_token, CurrentUser
+from .auth import create_access_token, CurrentUser, PassHasher
 
 router = APIRouter(prefix="/user")
 
@@ -36,7 +36,7 @@ async def register(
     session: AsyncSession,
     templates: Templates,
 ):
-    user = User(email=email, password=password)
+    user = User(email=email, password=PassHasher.get_password_hash(password))
     try:
         async with session() as session:
             session.add(user)
@@ -72,7 +72,8 @@ async def login(
     session: AsyncSession,
     templates: Templates,
 ):
-    stmt = select(User).where(User.email == email, User.password == password)
+    stmt = select(User).where(User.email == email)
+    error: str | None = None
     try:
         async with session() as session:
             result = await session.execute(stmt)
@@ -80,6 +81,11 @@ async def login(
     except SQLAlchemyError as e:
         error = e._message()
         logging.error(e)
+
+    if not PassHasher.verify_password(password, user.password):
+        error = "Wrong email or password"
+
+    if error is not None:
         return templates.TemplateResponse(
             request=request,
             name="user/login.jinja",
@@ -125,7 +131,6 @@ async def get_users(
     session: AsyncSession,
     current_user: CurrentUser,
 ):
-    logging.info(current_user)
     if current_user is None:
         return templates.TemplateResponse(
             request=request,
