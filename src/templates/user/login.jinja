@@ -1,6 +1,7 @@
-{% extends "schedule_base.jinja" %}
+{% extends "base.jinja" %}
 {% block title %}{{ title }}{% endblock %}
-{% block fill %}
+{% block main %}
+<div class="d-flex justify-content-center">
     <div class="card text-center card__form">
         <h4 class="card-header">Войти</h4>
         <div class="card-body">
@@ -26,11 +27,12 @@
                                required>
                     </label>
                 </div>
-                <button type="submit" class="btn btn-primary">Войти</button>
+                <button type="submit" class="btn btn-primary mb-3">Войти</button>
             </form>
             <p>
                 Нет аккаунта? <a href="/user/register">Создать</a>
             </p>
         </div>
     </div>
+</div>
 {% endblock %}
