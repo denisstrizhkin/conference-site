@@ -1,3 +1,5 @@
+from typing import Annotated
+
 from enum import StrEnum, auto
 from sqlmodel import SQLModel, Field, UniqueConstraint
 
@@ -20,3 +22,10 @@ class User(SQLModel, table=True):
         nullable=False,
         sa_column_kwargs={"server_default": UserRole.basic},
     )
+
+    name: Annotated[str, Field(default=None, nullable=True)]
+    surname: Annotated[str, Field(default=None, nullable=True)]
+    patronymic: Annotated[str, Field(default=None, nullable=True)]
+    organization: Annotated[str, Field(default=None, nullable=True)]
+    year: Annotated[int, Field(default=None, nullable=True)]
+    contact: Annotated[str, Field(default=None, nullable=True)]
