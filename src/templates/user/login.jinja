@@ -1,32 +1,36 @@
 {% extends "base.jinja" %}
-
-{% block title %}{{title}}{% endblock %}
-
+{% block title %}{{ title }}{% endblock %}
 {% block main %}
-<div class="card text-center" style="width: 40rem;">
-    <h4 class="card-header">Войти</h4>
-    <div class="card-body">
-        <p>{{error}}</p>
-        <form action="/user/login" method="POST">
-            <div class="mb-3">
-                <label class="form-label">Логин
-                <input
-                  type="login" class="form-control" name="email"
-                  placeholder="Введите логин" required
-                >
-                </label>
-            </div>
-            
-            <div class="mb-3">
-                <label class="form-label">Пароль
-                <input type="password" class="form-control" name="password"
-                       placeholder="Введите пароль" required>
-                </label>
-            </div>
-            
-            <button type="submit" class="btn btn-primary">Войти</button>
-        </form>
-        <p>Нет аккаунта? <a href="/user/register">Создать</a></p>
-    </div> 
-</div>
+    <div class="card text-center card__form">
+        <h4 class="card-header">Войти</h4>
+        <div class="card-body">
+            <p>{{ error }}</p>
+            <form action="/user/login" method="post">
+                <div class="mb-3">
+                    <label class="form-label">
+                        Логин
+                        <input type="login"
+                               class="form-control"
+                               name="email"
+                               placeholder="Введите логин"
+                               required>
+                    </label>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">
+                        Пароль
+                        <input type="password"
+                               class="form-control"
+                               name="password"
+                               placeholder="Введите пароль"
+                               required>
+                    </label>
+                </div>
+                <button type="submit" class="btn btn-primary">Войти</button>
+            </form>
+            <p>
+                Нет аккаунта? <a href="/user/register">Создать</a>
+            </p>
+        </div>
+    </div>
 {% endblock %}

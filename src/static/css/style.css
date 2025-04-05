@@ -1,0 +1,11 @@
+.card__form {
+  width: 40rem;
+}
+
+.schedule {
+  min-width: 250px;
+}
+
+.my-bg-green {
+  background-color: rgba(128, 135, 5, 1);
+}

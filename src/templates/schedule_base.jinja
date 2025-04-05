@@ -1,25 +1,36 @@
 {% extends "base.jinja" %}
-
-{% block title %}{{title}}{% endblock %}
-
+{% block title %}{{ title }}{% endblock %}
 {% block main %}
-<div class="d-flex flex-wrap justify-content-center py-3">
-    <div class="flex-grow-1 col-9 px-3">
-        <div>
-        {% block fill %}{% endblock %}
+    <div class="d-flex flex-wrap justify-content-center py-3">
+        <div class="flex-grow-1 col-9 px-3">
+            <div>
+                {% block fill %}{% endblock %}
+            </div>
+        </div>
+        <div class="schedule flex-grow-1 col-3 px-3">
+            <div class="border border-success rounded-3 p-3">
+                <ul>
+                    <li class="pb-2 fs-6">
+                        Начало регистрации:
+                        <br>
+                        <strong>2 апреля 2025 года</strong>
+                    </li>
+                    <li class="pb-2 fs-6">
+                        Окончание приема заявок:
+                        <br>
+                        <strong>2 мая 2025 года</strong>
+                    </li>
+                    <li class="pb-2 fs-6">
+                        Начало конференции:
+                        <br>
+                        <strong>12 мая 2025 года</strong>
+                    </li>
+                </ul>
+            </div>
+            <div class="text-center">
+                <img class="img-fluid pt-4"
+                     src="https://i.pinimg.com/originals/5e/45/ce/5e45ce6797d217f8bec5b332f7f4db86.gif" />
+            </div>
         </div>
     </div>
-    <div class="flex-grow-1 col-3 px-3" style="min-width: 250px;">
-        <div class="border border-success rounded-3 p-3">
-            <ul>
-                <li class="pb-2 fs-6">Начало регистрации: <br><strong> 2 апреля 2025 года</strong></li>
-                <li class="pb-2 fs-6">Окончание приема заявок: <br><strong> 2 мая 2025 года</strong></li>
-                <li class="pb-2 fs-6">Начало конференции: <br><strong> 12 мая 2025 года</strong></li>
-            </ul>
-        </div>
-        <div class="text-center">
-            <img class="img-fluid pt-4" src="https://i.pinimg.com/originals/5e/45/ce/5e45ce6797d217f8bec5b332f7f4db86.gif"/>
-        </div>
-    </div>
-</div>
 {% endblock %}

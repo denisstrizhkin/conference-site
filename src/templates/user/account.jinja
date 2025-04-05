@@ -1,42 +1,93 @@
-
 {% extends "base.jinja" %}
-
-{% block title %}{{title}}{% endblock %}
-
+{% block title %}{{ title }}{% endblock %}
 {% block main %}
-<p>{{error}}</p>
-<form id="registrationForm" action="/user/account" method="POST">
-  <div class="mb-3">
-    <label class="form-label">Адресс электронной почты
-      <input
-        type="email" class="form-control" name="email"
-        value="{{user.email}}" required
-      >
-    </label>
-  </div>
-
-  <div class="mb-3">
-    <label class="form-label">Роль пользователя
-      <select class="form-control" name="role">
-        {% for role in roles %}
-          {% if user.role == role[0] %}
-            <option value="{{role[0]}}" selected>{{role[1]}}</option>
-          {% else %}
-            <option value="{{role[0]}}">{{role[1]}}</option>
-          {% endif %}
-        {% endfor %}
-      </select>
-    </label>
-  </div>
-  
-  <div class="d-grid gap-2">
-      <button type="submit" class="btn btn-primary btn-lg">Сохранить</button>
-  </div>    
-</form>
-
-<form action="/user/logout" method="post" class="d-inline">
-  <button type="submit" class="btn btn-danger">
-    <i class="bi bi-box-arrow-right"></i> Выйти
-  </button>
-</form>
+    <p>{{ error }}</p>
+    <form id="registrationForm" action="/user/account" method="post">
+        <div class="mb-3">
+            <label class="form-label">
+                Логин
+                <input type="логин"
+                       class="form-control"
+                       name="email"
+                       value="{{ user.email }}"
+                       required>
+            </label>
+        </div>
+        <div class="col-sm-4">
+            <label for="lastName" class="form-label">Фамилия</label>
+            <input type="text"
+                   class="form-control"
+                   id="lastName"
+                   placeholder
+                   value
+                   required>
+            <div class="invalid-feedback">Это поле необходимо заполнить</div>
+        </div>
+        <div class="col-sm-4">
+            <label for="firstName" class="form-label">Имя</label>
+            <input type="text"
+                   class="form-control"
+                   id="firstName"
+                   placeholder
+                   value
+                   required>
+            <div class="invalid-feedback">Это поле необходимо заполнить</div>
+        </div>
+        <div class="col-sm-4">
+            <label for="patronymic" class="form-label">Отчество (если есть)</label>
+            <input type="text" class="form-control" id="patronymic">
+        </div>
+        <div class="col-12">
+            <label for="organization" class="form-label">Организация (краткое название университета/школы)</label>
+            <input type="text"
+                   class="form-control"
+                   id="organization"
+                   placeholder
+                   value
+                   required>
+            <div class="invalid-feedback">Это поле необходимо заполнить</div>
+        </div>
+        <div class="col-12">
+            <label for="grade" class="form-label">Курс (класс)</label>
+            <input type="text"
+                   class="form-control"
+                   id="grade"
+                   placeholder
+                   value
+                   required>
+            <div class="invalid-feedback">Это поле необходимо заполнить</div>
+        </div>
+        <div class="col-12">
+            <label for="contact" class="form-label">Telegram-id (предпочтительно) или адрес электронной почты</label>
+            <input type="text"
+                   class="form-control"
+                   id="contact"
+                   placeholder
+                   value
+                   required>
+            <div class="invalid-feedback">Это поле необходимо заполнить</div>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">
+                Роль пользователя
+                <select class="form-control" name="role">
+                    {% for role in roles %}
+                        {% if user.role == role[0] %}
+                            <option value="{{ role[0] }}" selected>{{ role[1] }}</option>
+                        {% else %}
+                            <option value="{{ role[0] }}">{{ role[1] }}</option>
+                        {% endif %}
+                    {% endfor %}
+                </select>
+            </label>
+        </div>
+        <div class="d-grid gap-2">
+            <button type="submit" class="btn btn-primary btn-lg">Сохранить</button>
+        </div>
+    </form>
+    <form action="/user/logout" method="post" class="d-inline">
+        <button type="submit" class="btn btn-danger">
+            <i class="bi bi-box-arrow-right"></i> Выйти
+        </button>
+    </form>
 {% endblock %}
