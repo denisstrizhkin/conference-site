@@ -1,0 +1,47 @@
+{% extends "base.jinja" %}
+
+{% block title %}{{title}}{% endblock %}
+
+{% block main %}
+<h4 class="mb-3 text-center">Регистрационная форма:</h4>
+<div class="d-flex justify-content-center">
+<div class="col-md-8">
+<form class="needs-validation" novalidate>
+    <div class="row g-3">
+        <div class="col-sm-4">
+            <label for="lastName" class="form-label">Фамилия</label>
+            <input type="text" class="form-control" id="lastName" placeholder value required>
+            <div class="invalid-feedback">Это поле необходимо заполнить</div>
+        </div>
+        <div class="col-sm-4">
+            <label for="firstName" class="form-label">Имя</label>
+            <input type="text" class="form-control" id="firstName" placeholder value required>
+            <div class="invalid-feedback">Это поле необходимо заполнить</div>
+        </div>
+        <div class="col-sm-4">
+            <label for="patronymic" class="form-label">Отчество (если есть)</label>
+            <input type="text" class="form-control" id="patronymic">
+        </div>
+        <div class="col-12">
+            <label for="organization" class="form-label">Организация (краткое название университета/школы)</label>
+            <input type="text" class="form-control" id="organization" placeholder value required>
+            <div class="invalid-feedback">Это поле необходимо заполнить</div>
+        </div>
+        <div class="col-12">
+            <label for="grade" class="form-label">Курс (класс)</label>
+            <input type="text" class="form-control" id="grade" placeholder value required>
+            <div class="invalid-feedback">Это поле необходимо заполнить</div>
+        </div>
+        <div class="col-12">
+            <label for="contact" class="form-label">Telegram-id (предпочтительно) или адрес электронной почты</label>
+            <input type="text" class="form-control" id="contact" placeholder value required>
+            <div class="invalid-feedback">Это поле необходимо заполнить</div>
+        </div>
+    </div>
+    <hr class="my-5">
+    <button class="btn btn-primary btn-lg" type="submit">Сохранить</button>
+</form>
+</div>
+</div>
+{% endblock %}
+
