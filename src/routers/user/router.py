@@ -159,7 +159,7 @@ async def account(
 
     return templates.TemplateResponse(
         request=request,
-        name="user/account.jinja",
+        name="form/reg.jinja",
         context={
             "title": "StudConfAU",
             "user": current_user,

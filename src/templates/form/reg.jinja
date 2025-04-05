@@ -48,14 +48,83 @@
         <option value="1">Докладчик</option>
         <option value="2">Гость</option>
     </select>
-    <p class="fs-6 my-3"><strong>
+    <div class="col-12">
+        <label class="form-label"><strong>Название доклада:</strong>
+            <input type="text" class="form-control" placeholder value required>
+        </label>
+        <div class="invalid-feedback">Это поле необходимо заполнить</div>
+    </div>
+    <p class="fs-6 mb-3 mt-4"><strong>
         Область научного знания, к которой относится тема Вашего доклада:
     </strong></p>
-    <div class="custom-form-check border border-2 border-rounded">
-        <label class="custom-control-label p-2">
-            <input class="custom-control-input" type="checkbox" value="">
+    <div class="form-check border border-2 rounded">
+        <label class="form-check-label p-2">
+        <input class="form-check-input" type="checkbox" value="">
             Биофизика/биотехнологии
         </label>
+    </div>
+    <div class="form-check border border-2 rounded">
+        <label class="form-check-label p-2">
+        <input class="form-check-input" type="checkbox" value="">
+            Компьютерные науки (в т.ч. биоинформатика)
+        </label>
+    </div>
+    <div class="form-check border border-2 rounded">
+        <label class="form-check-label p-2">
+        <input class="form-check-input" type="checkbox" value="">
+            Матем. физика (+ теор. вер., теория групп и т.п.)
+        </label>
+    </div>
+    <div class="form-check border border-2 rounded">
+        <label class="form-check-label p-2">
+        <input class="form-check-input" type="checkbox" value="">
+            Медицинская физика
+        </label>
+    </div>
+    <div class="form-check border border-2 rounded">
+        <label class="form-check-label p-2">
+        <input class="form-check-input" type="checkbox" value="">
+            Нанотехнологии
+        </label>
+    </div>
+    <div class="form-check border border-2 rounded">
+        <label class="form-check-label p-2">
+        <input class="form-check-input" type="checkbox" value="">
+            Сюжеты общей физики (1-2 курс)
+        </label>
+    </div>
+    <div class="form-check border border-2 rounded">
+        <label class="form-check-label p-2">
+        <input class="form-check-input" type="checkbox" value="">
+            Теор. физика твердых тел
+        </label>
+    </div>
+    <div class="form-check border border-2 rounded">
+        <label class="form-check-label p-2">
+        <input class="form-check-input" type="checkbox" value="">
+            Физика космоса
+        </label>
+    </div>
+    <p class="fs-6 mb-3 mt-4"><strong>
+        Ваш доклад оригинальный или научно-популярный?
+    </strong></p>
+    <div class="form-check border border-2 rounded">
+        <label class="form-check-label p-2">
+        <input class="form-check-input" type="checkbox" value="">
+            Оригинальный, собственное исследование (с научной новизной)
+        </label>
+    </div>
+    <div class="form-check border border-2 rounded">
+        <label class="form-check-label p-2">
+        <input class="form-check-input" type="checkbox" value="">
+            Научно-популярный, интересный сюжет/эффект/устройство
+        </label>
+    </div>
+    <div class="mt-4">
+        <label class="form-label">Файл с тезисом
+            <input class="form-control" type="file" required>
+        </label>
+        <div class="invalid-feedback">Неаобходимо выбрать файл!</div>
     </div>
     <hr class="my-5">
     <button class="btn btn-primary btn-lg" type="submit">Сохранить</button>
