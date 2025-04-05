@@ -1,3 +1,7 @@
+.form-label {
+    display: inline; 
+}
+
 .card__form {
   width: 40rem;
 }
@@ -9,3 +13,11 @@
 .my-bg-green {
   background-color: rgba(128, 135, 5, 1);
 }
+
+/* .custom-form-check .custom-control-input:checked ~ .custom-control-label::before { */
+    /* border-color: $primary; */
+/* } */
+
+/* .custom-form-check .custom-control-input:checked ~ .custom-control-label::after { */
+    /* border-color: $light; */
+/* } */
