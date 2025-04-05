@@ -27,10 +27,3 @@ async def participants(templates: Templates, request: Request):
         name="participants.jinja",
         context={"title": "StudConfAU"},
     )
-
-
-@router.get("/account", response_class=HTMLResponse)
-async def account(templates: Templates, request: Request):
-    return templates.TemplateResponse(
-        request=request, name="acc.jinja", context={"title": "StudConfAU"}
-    )

@@ -4,26 +4,31 @@
 
 {% block main %}
 <p>{{error}}</p>
-<form id="registrationForm" action="/user/register" method="POST">
-    <div class="mb-3">
-        <label class="form-label">Адресс электронной почты
-        <input
-          type="email" class="form-control" name="email"
-          placeholder="Введите почту" required
-        >
-        </label>
-    </div>
-    
-    <div class="mb-3">
-        <label class="form-label">Пароль
-        <input type="password" class="form-control" name="password"
-               placeholder="Введите пароль" required>
-        </label>
-    </div>
-    
-    <div class="d-grid gap-2">
-        <button type="submit" class="btn btn-primary btn-lg">Зарегистрироваться</button>
-    </div>    
-</form>
-<p>Уже есть аккаунт? <a href="/user/login">Войти</a></p>
+<div class="card text-center" style="width: 40rem;">
+    <h4 class="card-header">Создать аккаунт</h4>
+    <div class="card-body">
+        <form action="/user/register" method="POST">
+            <div class="mb-3">
+                <label class="form-label">Логин
+                    <input
+                        type="login" class="form-control" name="email"
+                        placeholder="Введите логи" required
+                    >
+                </label>
+                <div class="form-text">
+                    Выбирайте логин так, чтобы его не забыть к следующему разу!
+                </div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Пароль
+                <input type="password" class="form-control" name="password"
+                       placeholder="Введите пароль" required>
+                </label>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Зарегестрироваться</button>
+        </form>
+        <p>Уже есть аккаунт? <a href="/user/login">Войти</a></p>
+    </div> 
+</div>
 {% endblock %}

@@ -3,27 +3,30 @@
 {% block title %}{{title}}{% endblock %}
 
 {% block main %}
-<p>{{error}}</p>
-<form id="registrationForm" action="/user/login" method="POST">
-    <div class="mb-3">
-        <label class="form-label">Адрес электронной почты
-        <input
-          type="email" class="form-control" name="email"
-          placeholder="Введите почту" required
-        >
-        </label>
-    </div>
-    
-    <div class="mb-3">
-        <label class="form-label">Пароль
-        <input type="password" class="form-control" name="password"
-               placeholder="Введите пароль" required>
-        </label>
-    </div>
-    
-    <div class="d-grid gap-2">
-        <button type="submit" class="btn btn-primary btn-lg">Войти</button>
-    </div>    
-</form>
-<p>Нет аккаунта? <a href="/user/register">Создать</a></p>
+<div class="card text-center" style="width: 40rem;">
+    <h4 class="card-header">Войти</h4>
+    <div class="card-body">
+        <p>{{error}}</p>
+        <form action="/user/login" method="POST">
+            <div class="mb-3">
+                <label class="form-label">Логин
+                <input
+                  type="login" class="form-control" name="email"
+                  placeholder="Введите логин" required
+                >
+                </label>
+            </div>
+            
+            <div class="mb-3">
+                <label class="form-label">Пароль
+                <input type="password" class="form-control" name="password"
+                       placeholder="Введите пароль" required>
+                </label>
+            </div>
+            
+            <button type="submit" class="btn btn-primary">Войти</button>
+        </form>
+        <p>Нет аккаунта? <a href="/user/register">Создать</a></p>
+    </div> 
+</div>
 {% endblock %}
