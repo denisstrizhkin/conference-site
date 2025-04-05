@@ -9,14 +9,18 @@ router: APIRouter = APIRouter()
 @router.get("/", response_class=HTMLResponse)
 async def index(templates: Templates, request: Request):
     return templates.TemplateResponse(
-        request=request, name="index.jinja", context={"title": "StudConfAU"}
+        request=request,
+        name="index.jinja",
+        context={"title": "StudConfAU"}
     )
 
 
 @router.get("/about", response_class=HTMLResponse)
 async def about(templates: Templates, request: Request):
     return templates.TemplateResponse(
-        request=request, name="about.jinja", context={"title": "StudConfAU"}
+        request=request,
+        name="about.jinja",
+        context={"title": "StudConfAU"}
     )
 
 
@@ -25,5 +29,14 @@ async def participants(templates: Templates, request: Request):
     return templates.TemplateResponse(
         request=request,
         name="participants.jinja",
-        context={"title": "StudConfAU"},
+        context={"title": "StudConfAU"}
+    )
+
+
+@router.get("/gallery", response_class=HTMLResponse)
+async def gallery(templates: Templates, request: Request):
+    return templates.TemplateResponse(
+        request=request,
+        name="gallery.jinja",
+        context={"title": "StudConfAU"}
     )
