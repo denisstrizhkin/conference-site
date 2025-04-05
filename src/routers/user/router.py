@@ -144,6 +144,7 @@ async def account(
             name="user/login.jinja",
             context={"title": "StudConfAU"},
         )
+    logging.error(current_user)
 
     roles: list[tuple[str, str]] = list()
     if current_user.role == UserRole.admin:
@@ -167,6 +168,13 @@ async def account(
         },
     )
 
+@router.get("/account", response_class=HTMLResponse)
+async def account(
+    templates: Templates,
+    request: Request,
+    session: AsyncSession,
+    current_user: CurrentUser,
+):
 
 @router.get("/", response_class=HTMLResponse)
 async def get_users(

@@ -4,40 +4,50 @@
 <h4 class="mb-3 text-center">Регистрационная форма:</h4>
 <div class="d-flex justify-content-center">
 <div class="col-md-8">
-<form class="needs-validation" novalidate>
+<form class="needs-validation" action="/user/account" method="post">
+        <div class="mb-3">
+            <label class="form-label">
+                Логин
+                <input type="login"
+                       class="form-control"
+                       name="email"
+                       value="{{ user.email|default('') }}"
+                       required>
+            </label>
+        </div>
     <div class="row g-3">
         <div class="col-sm-4">
             <label class="form-label">Фамилия
-                <input type="text" class="form-control" placeholder value required>
+                <input type="text" class="form-control" placeholder value="{{ user.surname|default('', true) }}" required>
             </label>
             <div class="invalid-feedback">Это поле необходимо заполнить</div>
         </div>
         <div class="col-sm-4">
             <label class="form-label">Имя
-                <input type="text" class="form-control" placeholder value required>
+                <input type="text" class="form-control" placeholder value="{{ user.name|default('', true) }}" required>
             </label>
             <div class="invalid-feedback">Это поле необходимо заполнить</div>
         </div>
         <div class="col-sm-4">
             <label class="form-label">Отчество (если есть)
-                <input type="text" class="form-control">
+                <input type="text" class="form-control" value="{{ user.patronymic|default('', true) }}">
             </label>
         </div>
         <div class="col-12">
             <label class="form-label">Организация (краткое название университета/школы)
-                <input type="text" class="form-control" placeholder value required>
+                <input type="text" class="form-control" placeholder value="{{ user.organization|default('', true) }}" required>
             </label>
             <div class="invalid-feedback">Это поле необходимо заполнить</div>
         </div>
         <div class="col-12">
             <label class="form-label">Курс (класс)
-                <input type="text" class="form-control" placeholder value required>
+                <input type="number" class="form-control" placeholder value="{{ user.year|default('', true) }}" required>
             </label>
             <div class="invalid-feedback">Это поле необходимо заполнить</div>
         </div>
         <div class="col-12">
             <label class="form-label">Telegram-id (предпочтительно) или адрес электронной почты
-                <input type="text" class="form-control" placeholder value required>
+                <input type="text" class="form-control" placeholder value="{{ user.contact|default('', true) }}" required>
             </label>
             <div class="invalid-feedback">Это поле необходимо заполнить</div>
         </div>
