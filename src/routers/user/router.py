@@ -168,13 +168,45 @@ async def account(
         },
     )
 
-@router.get("/account", response_class=HTMLResponse)
+
+@router.post("/account", response_class=HTMLResponse)
 async def account(
     templates: Templates,
     request: Request,
     session: AsyncSession,
     current_user: CurrentUser,
+    email: Annotated[str, Form()],
 ):
+    if current_user is None:
+        return templates.TemplateResponse(
+            request=request,
+            name="user/login.jinja",
+            context={"title": "StudConfAU"},
+        )
+    logging.error(email)
+
+    roles: list[tuple[str, str]] = list()
+    if current_user.role == UserRole.admin:
+        roles = [
+            (UserRole.admin, "Админ"),
+        ]
+    else:
+        roles = [
+            (UserRole.basic, "Не учавствую"),
+            (UserRole.viewer, "Зритель"),
+            (UserRole.participant, "Участник"),
+        ]
+
+    return templates.TemplateResponse(
+        request=request,
+        name="form/reg.jinja",
+        context={
+            "title": "StudConfAU",
+            "user": current_user,
+            "roles": roles,
+        },
+    )
+
 
 @router.get("/", response_class=HTMLResponse)
 async def get_users(
