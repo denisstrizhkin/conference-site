@@ -34,7 +34,7 @@ class Token(BaseModel):
     expires: datetime
 
 
-def create_access_token(user: User) -> tuple[str, datetime]:
+def create_access_token(user: User) -> tuple[str, int]:
     expires = datetime.utcnow() + timedelta(minutes=settings.jwt_expire_minutes)
     token = Token(user=user, expires=expires)
     to_encode = token.model_dump_json()
@@ -42,21 +42,23 @@ def create_access_token(user: User) -> tuple[str, datetime]:
     encoded_jwt = jwt.encode(
         to_encode, settings.jwt_secret, algorithm=settings.jwt_algorithm
     )
-    return encoded_jwt, expires
+    return encoded_jwt, settings.jwt_expire_minutes * 60
 
 
 async def get_current_user(
     request: Request,
     session: AsyncSession,
 ) -> User | None:
-    token = request.cookies.get("access_token")
-    if token is None:
+    access_token = request.cookies.get("access_token")
+    if access_token is None:
         logger.error("no access token provided")
         return None
 
     try:
         payload = jwt.decode(
-            token[7:], settings.jwt_secret, algorithms=[settings.jwt_algorithm]
+            access_token[7:],
+            settings.jwt_secret,
+            algorithms=[settings.jwt_algorithm],
         )
         token = Token(**payload)
         user = token.user

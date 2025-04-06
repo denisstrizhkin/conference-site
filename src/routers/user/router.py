@@ -1,4 +1,4 @@
-from typing import Annotated
+from typing import Annotated, Any
 import logging
 
 from fastapi import (
@@ -13,7 +13,7 @@ from sqlalchemy.exc import SQLAlchemyError, IntegrityError, NoResultFound
 
 from src.db import AsyncSession
 from src.depends import Templates
-from .models import User, UserRole
+from .models import User, UserRole, ReportType
 from .auth import create_access_token, CurrentUser, PassHasher
 
 logger = logging.getLogger(__name__)
@@ -136,8 +136,30 @@ async def logout():
     return response
 
 
+def generate_roles_list(current_role: UserRole) -> list[tuple[UserRole, str]]:
+    if current_role == UserRole.admin:
+        return [
+            (UserRole.admin, "Админ"),
+        ]
+    else:
+        return [
+            (UserRole.basic, "Не учавствую"),
+            (UserRole.viewer, "Зритель"),
+            (UserRole.participant, "Участник"),
+        ]
+
+
+def account_context(user: User, error: str | None = None) -> dict[Any, Any]:
+    return {
+        "title": "StudConfAU",
+        "error": error,
+        "user": user,
+        "roles": generate_roles_list(user.role),
+    }
+
+
 @router.get("/account", response_class=HTMLResponse)
-async def account(
+async def get_account(
     templates: Templates,
     request: Request,
     session: AsyncSession,
@@ -149,37 +171,22 @@ async def account(
             name="user/login.jinja",
             context={"title": "StudConfAU"},
         )
-    logger.error(current_user)
-
-    roles: list[tuple[str, str]] = list()
-    if current_user.role == UserRole.admin:
-        roles = [
-            (UserRole.admin, "Админ"),
-        ]
-    else:
-        roles = [
-            (UserRole.basic, "Не учавствую"),
-            (UserRole.viewer, "Зритель"),
-            (UserRole.participant, "Участник"),
-        ]
 
     return templates.TemplateResponse(
         request=request,
         name="form/reg.jinja",
-        context={
-            "title": "StudConfAU",
-            "user": current_user,
-            "roles": roles,
-        },
+        context=account_context(current_user),
     )
 
 
 @router.post("/account", response_class=HTMLResponse)
-async def account(
+async def post_account(
+    # Request stuff
     templates: Templates,
     request: Request,
     session: AsyncSession,
     current_user: CurrentUser,
+    # User
     role: Annotated[str, Form()],
     email: Annotated[str, Form()],
     surname: Annotated[str, Form()],
@@ -188,7 +195,16 @@ async def account(
     organization: Annotated[str, Form()],
     year: Annotated[int, Form()],
     contact: Annotated[str, Form()],
+    # Report Form
     report_name: Annotated[str | None, Form()] = None,
+    report_type: Annotated[ReportType | None, Form()] = None,
+    flag_bio_phys: Annotated[bool, Form()] = False,
+    flag_comp_sci: Annotated[bool, Form()] = False,
+    flag_math_phys: Annotated[bool, Form()] = False,
+    flag_nano_tech: Annotated[bool, Form()] = False,
+    flag_general_phys: Annotated[bool, Form()] = False,
+    flag_solid_body: Annotated[bool, Form()] = False,
+    flag_space_phys: Annotated[bool, Form()] = False,
 ):
     if current_user is None:
         return templates.TemplateResponse(
@@ -197,18 +213,6 @@ async def account(
             context={"title": "StudConfAU"},
         )
     logger.error(current_user)
-
-    roles: list[tuple[str, str]] = list()
-    if current_user.role == UserRole.admin:
-        roles = [
-            (UserRole.admin, "Админ"),
-        ]
-    else:
-        roles = [
-            (UserRole.basic, "Не учавствую"),
-            (UserRole.viewer, "Зритель"),
-            (UserRole.participant, "Участник"),
-        ]
 
     updated_user = current_user.model_copy(
         update={
@@ -241,22 +245,13 @@ async def account(
         return templates.TemplateResponse(
             request=request,
             name="form/reg.jinja",
-            context={
-                "title": "StudConfAU",
-                "error": error,
-                "user": current_user,
-                "roles": roles,
-            },
+            context=account_context(current_user, error),
         )
 
     return templates.TemplateResponse(
         request=request,
         name="form/reg.jinja",
-        context={
-            "title": "StudConfAU",
-            "user": updated_user,
-            "roles": roles,
-        },
+        context=account_context(updated_user, error),
     )
 
 
