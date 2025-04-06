@@ -144,8 +144,8 @@ def generate_roles_list(current_role: UserRole) -> list[tuple[UserRole, str]]:
     else:
         return [
             (UserRole.basic, "Не учавствую"),
-            (UserRole.viewer, "Зритель"),
-            (UserRole.participant, "Участник"),
+            (UserRole.viewer, "Без доклада"),
+            (UserRole.participant, "С докладом"),
         ]
 
 
