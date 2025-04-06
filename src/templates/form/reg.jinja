@@ -100,7 +100,11 @@
                         <div class="col-12">
                             <label class="form-label">
                                 <strong>Название доклада:</strong>
-                                <input type="text" class="form-control" name="report_name" value required>
+                                <input type="text"
+                                       class="form-control"
+                                       name="report_name"
+                                       value="{{ user.form.report_name|default('', true) }}"
+                                       required>
                             </label>
                             <div class="invalid-feedback">Это поле необходимо заполнить</div>
                         </div>
@@ -113,49 +117,70 @@
                                     <input class="form-check-input"
                                            type="checkbox"
                                            name="flag_bio_phys"
-                                           value="">
+                                           {% if user.form.flag_bio_phys %}checked{% endif %}>
                                     Биофизика/биотехнологии
                                 </label>
                             </div>
                             <div class="form-check border border-2 rounded">
                                 <label class="form-check-label p-2">
-                                    <input class="form-check-input" type="checkbox" value="">
+                                    <input class="form-check-input"
+                                           type="checkbox"
+                                           name="flag_comp_sci"
+                                           {% if user.form.flag_comp_sci %}checked{% endif %}>
                                     Компьютерные науки (в т.ч. биоинформатика)
                                 </label>
                             </div>
                             <div class="form-check border border-2 rounded">
                                 <label class="form-check-label p-2">
-                                    <input class="form-check-input" type="checkbox" value="">
+                                    <input class="form-check-input"
+                                           type="checkbox"
+                                           name="flag_math_phys"
+                                           {% if user.form.flag_math_phys %}checked{% endif %}>
                                     Матем. физика (+ теор. вер., теория групп и т.п.)
                                 </label>
                             </div>
                             <div class="form-check border border-2 rounded">
                                 <label class="form-check-label p-2">
-                                    <input class="form-check-input" type="checkbox" value="">
+                                    <input class="form-check-input"
+                                           type="checkbox"
+                                           name=""
+                                           {% if False %}checked{% endif %}>
                                     Медицинская физика
                                 </label>
                             </div>
                             <div class="form-check border border-2 rounded">
                                 <label class="form-check-label p-2">
-                                    <input class="form-check-input" type="checkbox" value="">
+                                    <input class="form-check-input"
+                                           type="checkbox"
+                                           name="flag_nano_tech"
+                                           {% if user.form.flag_nano_tech %}checked{% endif %}>
                                     Нанотехнологии
                                 </label>
                             </div>
                             <div class="form-check border border-2 rounded">
                                 <label class="form-check-label p-2">
-                                    <input class="form-check-input" type="checkbox" value="">
+                                    <input class="form-check-input"
+                                           type="checkbox"
+                                           name="flag_general_phys"
+                                           {% if user.form.flag_general_phys %}checked{% endif %}>
                                     Сюжеты общей физики (1-2 курс)
                                 </label>
                             </div>
                             <div class="form-check border border-2 rounded">
                                 <label class="form-check-label p-2">
-                                    <input class="form-check-input" type="checkbox" value="">
+                                    <input class="form-check-input"
+                                           type="checkbox"
+                                           name="flag_solid_body"
+                                           {% if user.form.flag_solid_body %}checked{% endif %}>
                                     Теор. физика твердых тел
                                 </label>
                             </div>
                             <div class="form-check border border-2 rounded">
                                 <label class="form-check-label p-2">
-                                    <input class="form-check-input" type="checkbox" value="">
+                                    <input class="form-check-input"
+                                           type="checkbox"
+                                           name="flag_space_phys"
+                                           {% if user.form.flag_space_phys %}checked{% endif %}>
                                     Физика космоса
                                 </label>
                             </div>
