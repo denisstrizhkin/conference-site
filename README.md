@@ -42,13 +42,23 @@ Install the required python version (ﾉ◕ヮ◕)ﾉ*:･ﾟ✧
 Install the deps Σ(°ロ°)
 
 ```console
-> uv sync
+> uv sync --dev
 ```
 
 Activate the virtual Python evironment (o_O) !
 
 ```console
 > source .venv/bin/activate
+```
+
+### Setup the SQLite database
+
+Run `alembic` migrations to setup tables in the database.
+This also gives you the `admin@example.com - admin` user which you can use for
+administrative purposes. You **should** readjust admin user credentials for security.
+
+```console
+alembic upgrade head
 ```
 
 ### Finally
