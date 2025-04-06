@@ -180,6 +180,7 @@ async def account(
     request: Request,
     session: AsyncSession,
     current_user: CurrentUser,
+    role: Annotated[str, Form()],
     email: Annotated[str, Form()],
     surname: Annotated[str, Form()],
     name: Annotated[str, Form()],
@@ -187,7 +188,7 @@ async def account(
     organization: Annotated[str, Form()],
     year: Annotated[int, Form()],
     contact: Annotated[str, Form()],
-    report_name: Annotated[str, Form()],
+    report_name: Annotated[str | None, Form()] = None,
 ):
     if current_user is None:
         return templates.TemplateResponse(
@@ -212,6 +213,7 @@ async def account(
     updated_user = current_user.model_copy(
         update={
             "email": email,
+            "role": role,
             "surname": surname,
             "name": name,
             "patronymic": patronymic,
