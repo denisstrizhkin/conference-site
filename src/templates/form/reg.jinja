@@ -143,8 +143,8 @@
                                 <label class="form-check-label p-2">
                                     <input class="form-check-input"
                                            type="checkbox"
-                                           name=""
-                                           {% if False %}checked{% endif %}>
+                                           name="flag_med_phys"
+                                           {% if user.form.flag_med_phys %}checked{% endif %}>
                                     Медицинская физика
                                 </label>
                             </div>
@@ -194,7 +194,7 @@
                                        type="radio"
                                        name="report_type"
                                        value="original"
-                                       checked>
+                                       {% if user.form.report_type == "original" %}checked{% endif %}>
                                 Оригинальный, собственное исследование (с научной новизной)
                             </label>
                         </div>
@@ -203,7 +203,8 @@
                                 <input class="form-check-input"
                                        type="radio"
                                        name="report_type"
-                                       value="scipop">
+                                       value="scipop"
+                                       {% if user.form.report_type == "scipop" %}checked{% endif %}>
                                 Научно-популярный, интересный сюжет/эффект/устройство
                             </label>
                         </div>

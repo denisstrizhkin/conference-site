@@ -17,6 +17,7 @@ class ReportForm(BaseModel):
     flag_bio_phys: bool
     flag_comp_sci: bool
     flag_math_phys: bool
+    flag_med_phys: bool
     flag_nano_tech: bool
     flag_general_phys: bool
     flag_solid_body: bool
