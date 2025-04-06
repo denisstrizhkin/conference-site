@@ -3,37 +3,37 @@
 {% block main %}
     <p>{{ error }}</p>
     <div class="d-flex justify-content-center">
-    <div class="card text-center card__form">
-        <h4 class="card-header">Создать аккаунт</h4>
-        <div class="card-body">
-            <form action="/user/register" method="post">
-                <div class="mb-3">
-                    <label class="form-label">
-                        Логин
-                        <input type="login"
-                               class="form-control"
-                               name="email"
-                               placeholder="Введите логин"
-                               required>
-                    </label>
-                    <div class="form-text">Выбирайте логин так, чтобы его не забыть к следующему разу!</div>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">
-                        Пароль
-                        <input type="password"
-                               class="form-control"
-                               name="password"
-                               placeholder="Введите пароль"
-                               required>
-                    </label>
-                </div>
-                <button type="submit" class="btn btn-primary mb-3">Зарегистрироваться</button>
-            </form>
-            <p>
-                Уже есть аккаунт? <a href="/user/login">Войти</a>
-            </p>
+        <div class="card text-center card__form">
+            <h4 class="card-header">Создать аккаунт</h4>
+            <div class="card-body">
+                <form action="/user/register" method="post">
+                    <div class="mb-3">
+                        <label class="form-label">
+                            Логин
+                            <input type="login"
+                                   class="form-control"
+                                   name="email"
+                                   placeholder="Введите логин"
+                                   required>
+                        </label>
+                        <div class="form-text">Выбирайте логин так, чтобы его не забыть к следующему разу!</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">
+                            Пароль
+                            <input type="password"
+                                   class="form-control"
+                                   name="password"
+                                   placeholder="Введите пароль"
+                                   required>
+                        </label>
+                    </div>
+                    <button type="submit" class="btn btn-primary mb-3">Зарегистрироваться</button>
+                </form>
+                <p>
+                    Уже есть аккаунт? <a href="/user/login">Войти</a>
+                </p>
+            </div>
         </div>
-    </div>
     </div>
 {% endblock %}
