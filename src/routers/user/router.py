@@ -9,7 +9,7 @@ from fastapi import (
 )
 from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlmodel import select
-from sqlalchemy.exc import SQLAlchemyError, IntegrityError
+from sqlalchemy.exc import SQLAlchemyError, IntegrityError, NoResultFound
 
 from src.db import AsyncSession
 from src.depends import Templates
@@ -85,12 +85,15 @@ async def login(
         async with session() as session:
             result = await session.execute(stmt)
             user = result.one()[0]
+
+        if not PassHasher.verify_password(password, user.password):
+            error = "Неправильная почта или пароль"
+    except NoResultFound as e:
+        error = "Такого пользователя не сущевствует"
+        logging.error(e)
     except SQLAlchemyError as e:
         error = e._message()
         logging.error(e)
-
-    if not PassHasher.verify_password(password, user.password):
-        error = "Неправильная почта или пароль"
 
     if error is not None:
         return templates.TemplateResponse(
