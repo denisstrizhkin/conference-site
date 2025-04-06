@@ -14,6 +14,8 @@ from .models import User
 from src.db import AsyncSession
 from src.settings import settings
 
+logger = logging.getLogger(__name__)
+
 
 class PassHasher:
     _context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -49,7 +51,7 @@ async def get_current_user(
 ) -> User | None:
     token = request.cookies.get("access_token")
     if token is None:
-        logging.error("no access token provided")
+        logger.error("no access token provided")
         return None
 
     try:
@@ -59,17 +61,17 @@ async def get_current_user(
         token = Token(**payload)
         user = token.user
     except JWTError as e:
-        logging.error(e)
+        logger.error(e)
         return None
 
-    logging.error(user)
+    logger.error(user)
     try:
         stmt = select(User).where(User.email == user.email)
         async with session() as session:
             result = await session.execute(stmt)
             user = result.one()[0]
     except SQLAlchemyError as e:
-        logging.error(e)
+        logger.error(e)
         return None
 
     return user

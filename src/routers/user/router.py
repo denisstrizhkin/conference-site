@@ -8,13 +8,15 @@ from fastapi import (
     Form,
 )
 from fastapi.responses import HTMLResponse, RedirectResponse
-from sqlmodel import select
+from sqlmodel import select, update
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError, NoResultFound
 
 from src.db import AsyncSession
 from src.depends import Templates
 from .models import User, UserRole
 from .auth import create_access_token, CurrentUser, PassHasher
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/user")
 
@@ -45,10 +47,10 @@ async def register(
             await session.commit()
     except IntegrityError as e:
         error = "Такой пользователь уже сущевствует"
-        logging.error(e)
+        logger.error(e)
     except SQLAlchemyError as e:
         error = e._message()
-        logging.error(e)
+        logger.error(e)
 
     if error is not None:
         return templates.TemplateResponse(
@@ -90,10 +92,10 @@ async def login(
             error = "Неправильная почта или пароль"
     except NoResultFound as e:
         error = "Такого пользователя не сущевствует"
-        logging.error(e)
+        logger.error(e)
     except SQLAlchemyError as e:
         error = e._message()
-        logging.error(e)
+        logger.error(e)
 
     if error is not None:
         return templates.TemplateResponse(
@@ -147,7 +149,7 @@ async def account(
             name="user/login.jinja",
             context={"title": "StudConfAU"},
         )
-    logging.error(current_user)
+    logger.error(current_user)
 
     roles: list[tuple[str, str]] = list()
     if current_user.role == UserRole.admin:
@@ -179,6 +181,13 @@ async def account(
     session: AsyncSession,
     current_user: CurrentUser,
     email: Annotated[str, Form()],
+    surname: Annotated[str, Form()],
+    name: Annotated[str, Form()],
+    patronymic: Annotated[str, Form()],
+    organization: Annotated[str, Form()],
+    year: Annotated[int, Form()],
+    contact: Annotated[str, Form()],
+    report_name: Annotated[str, Form()],
 ):
     if current_user is None:
         return templates.TemplateResponse(
@@ -186,7 +195,7 @@ async def account(
             name="user/login.jinja",
             context={"title": "StudConfAU"},
         )
-    logging.error(email)
+    logger.error(current_user)
 
     roles: list[tuple[str, str]] = list()
     if current_user.role == UserRole.admin:
@@ -200,12 +209,50 @@ async def account(
             (UserRole.participant, "Участник"),
         ]
 
+    updated_user = current_user.model_copy(
+        update={
+            "email": email,
+            "surname": surname,
+            "name": name,
+            "patronymic": patronymic,
+            "organization": organization,
+            "year": year,
+            "contact": contact,
+        }
+    )
+
+    error: str | None = None
+    try:
+        async with session() as session:
+            stmt = (
+                update(User)
+                .where(User.id == updated_user.id)
+                .values(**updated_user.model_dump())
+            )
+            await session.execute(stmt)
+            await session.commit()
+    except SQLAlchemyError as e:
+        error = e._message()
+        logger.error(e)
+
+    if error:
+        return templates.TemplateResponse(
+            request=request,
+            name="form/reg.jinja",
+            context={
+                "title": "StudConfAU",
+                "error": error,
+                "user": current_user,
+                "roles": roles,
+            },
+        )
+
     return templates.TemplateResponse(
         request=request,
         name="form/reg.jinja",
         context={
             "title": "StudConfAU",
-            "user": current_user,
+            "user": updated_user,
             "roles": roles,
         },
     )

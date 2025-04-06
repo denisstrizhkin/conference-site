@@ -1,7 +1,26 @@
 from typing import Annotated
 
 from enum import StrEnum, auto
-from sqlmodel import SQLModel, Field, UniqueConstraint
+from sqlmodel import SQLModel, Field, UniqueConstraint, JSON, Column
+from pydantic import BaseModel
+
+
+class ReportType(StrEnum):
+    original = auto()
+    scipop = auto()
+
+
+class UserForm(BaseModel):
+    report_name: str
+    report_type: ReportType = Field(default=ReportType.original)
+
+    flag_bio_phys: bool
+    flag_comp_sci: bool
+    flag_math_phys: bool
+    flag_nano_tech: bool
+    flag_general_phys: bool
+    flag_solid_body: bool
+    flag_space_phys: bool
 
 
 class UserRole(StrEnum):
@@ -29,3 +48,8 @@ class User(SQLModel, table=True):
     organization: Annotated[str, Field(default=None, nullable=True)]
     year: Annotated[int, Field(default=None, nullable=True)]
     contact: Annotated[str, Field(default=None, nullable=True)]
+
+    form: Annotated[
+        UserForm,
+        Field(default=None, sa_column=Column(JSON, nullable=True)),
+    ]
