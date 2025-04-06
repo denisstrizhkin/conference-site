@@ -13,7 +13,7 @@ from sqlalchemy.exc import SQLAlchemyError, IntegrityError, NoResultFound
 
 from src.db import AsyncSession
 from src.depends import Templates
-from .models import User, UserRole, ReportType
+from .models import User, UserRole, ReportType, ReportForm
 from .auth import create_access_token, CurrentUser, PassHasher
 
 logger = logging.getLogger(__name__)
@@ -214,6 +214,20 @@ async def post_account(
         )
     logger.error(current_user)
 
+    report_form: ReportForm | None = None
+    if report_name:
+        report_form = ReportForm(
+            report_name=report_name,
+            report_type=report_type,
+            flag_bio_phys=flag_bio_phys,
+            flag_comp_sci=flag_comp_sci,
+            flag_math_phys=flag_math_phys,
+            flag_nano_tech=flag_nano_tech,
+            flag_general_phys=flag_general_phys,
+            flag_solid_body=flag_solid_body,
+            flag_space_phys=flag_space_phys,
+        )
+
     updated_user = current_user.model_copy(
         update={
             "email": email,
@@ -224,6 +238,7 @@ async def post_account(
             "organization": organization,
             "year": year,
             "contact": contact,
+            "form": report_form,
         }
     )
 

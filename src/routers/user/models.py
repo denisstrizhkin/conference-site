@@ -10,7 +10,7 @@ class ReportType(StrEnum):
     scipop = auto()
 
 
-class UserForm(BaseModel):
+class ReportForm(BaseModel):
     report_name: str
     report_type: ReportType = Field(default=ReportType.original)
 
@@ -50,6 +50,6 @@ class User(SQLModel, table=True):
     contact: Annotated[str, Field(default=None, nullable=True)]
 
     form: Annotated[
-        UserForm,
+        ReportForm,
         Field(default=None, sa_column=Column(JSON, nullable=True)),
     ]
