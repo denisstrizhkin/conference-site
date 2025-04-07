@@ -1,12 +1,7 @@
 from typing import Annotated, Any
 import logging
 
-from fastapi import (
-    APIRouter,
-    status,
-    Request,
-    Form,
-)
+from fastapi import APIRouter, status, Request, Form, UploadFile, File
 from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlmodel import select, update
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError, NoResultFound
@@ -206,6 +201,7 @@ async def post_account(
     flag_general_phys: Annotated[bool, Form()] = False,
     flag_solid_body: Annotated[bool, Form()] = False,
     flag_space_phys: Annotated[bool, Form()] = False,
+    report_file: UploadFile = File(...),
 ):
     if current_user is None:
         return templates.TemplateResponse(
@@ -217,6 +213,8 @@ async def post_account(
 
     report_form: ReportForm | None = None
     if report_name:
+        content = await report_file.read()
+
         report_form = ReportForm(
             report_name=report_name,
             report_type=report_type,
@@ -228,6 +226,8 @@ async def post_account(
             flag_general_phys=flag_general_phys,
             flag_solid_body=flag_solid_body,
             flag_space_phys=flag_space_phys,
+            content=content,
+            content_type=report_file.content_type,
         )
 
     updated_user = current_user.model_copy(

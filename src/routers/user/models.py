@@ -23,6 +23,9 @@ class ReportForm(BaseModel):
     flag_solid_body: bool
     flag_space_phys: bool
 
+    content: bytes
+    content_type: str
+
 
 class UserRole(StrEnum):
     admin = auto()
