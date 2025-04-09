@@ -14,7 +14,7 @@ from fastapi import (
 )
 from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlmodel import select, update
-from sqlalchemy.exc import SQLAlchemyError, IntegrityError, NoResultFound
+from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 
 from src.db import Session
 from src.depends import Templates
@@ -178,38 +178,6 @@ async def get_account(
         request=request,
         name="form/reg.jinja",
         context=account_context(current_user),
-    )
-
-
-@router.get("/download/report_file/{user_id}")
-async def download_file(
-    user_id: int,
-    templates: Templates,
-    request: Request,
-    current_user: CurrentUser,
-):
-    if current_user is None:
-        return templates.TemplateResponse(
-            request=request,
-            name="user/login.jinja",
-            context={"title": "StudConfAU"},
-        )
-
-    if current_user.id != user_id and current_user.role != UserRole.admin:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Попытка скачать чужой файл",
-            headers={"WWW-Authenticate": "Basic"},
-        )
-
-    data = base64.b64decode(current_user.form["content"])
-    return Response(
-        content=data,
-        media_type=current_user.form["content_type"],
-        headers={
-            "Content-Disposition": f"attachment; filename=some_file",
-            "Content-Length": str(len(data)),
-        },
     )
 
 
