@@ -1,13 +1,26 @@
 from typing import Annotated, Any
 import logging
+import base64
 
-from fastapi import APIRouter, status, Request, Form, UploadFile, File
+from fastapi import (
+    APIRouter,
+    status,
+    Request,
+    Form,
+    UploadFile,
+    File,
+    HTTPException,
+    Response,
+)
 from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlmodel import select, update
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError, NoResultFound
 
-from src.db import AsyncSession
+from src.db import Session
 from src.depends import Templates
+from src.routers.files.repo import FileRepository
+
+from .repo import UserRepository
 from .models import User, UserRole, ReportType, ReportForm
 from .auth import create_access_token, CurrentUser, PassHasher
 
@@ -30,16 +43,15 @@ async def register(
     request: Request,
     email: Annotated[str, Form()],
     password: Annotated[str, Form()],
-    session: AsyncSession,
+    session: Session,
     templates: Templates,
 ):
-    user = User(email=email, password=PassHasher.get_password_hash(password))
-
     error: str | None = None
     try:
         async with session() as session:
-            session.add(user)
-            await session.commit()
+            await UserRepository(session).create(
+                email, PassHasher.get_password_hash(password)
+            )
     except IntegrityError as e:
         error = "Такой пользователь уже сущевствует"
         logger.error(e)
@@ -73,15 +85,13 @@ async def login(
     request: Request,
     email: Annotated[str, Form()],
     password: Annotated[str, Form()],
-    session: AsyncSession,
+    session: Session,
     templates: Templates,
 ):
-    stmt = select(User).where(User.email == email)
     error: str | None = None
     try:
-        async with session() as session:
-            result = await session.execute(stmt)
-            user = result.one()[0]
+        user = await UserRepository(session).get(email)
+        logger.error(type(user.form))
 
         if not PassHasher.verify_password(password, user.password):
             error = "Неправильная почта или пароль"
@@ -107,7 +117,7 @@ async def login(
     )
     response.set_cookie(
         key="access_token",
-        value=f"Bearer {token}",
+        value=f"{token}",
         httponly=True,
         max_age=expires,
         secure=True,  # Set to True in production with HTTPS
@@ -157,7 +167,7 @@ def account_context(user: User, error: str | None = None) -> dict[Any, Any]:
 async def get_account(
     templates: Templates,
     request: Request,
-    session: AsyncSession,
+    session: Session,
     current_user: CurrentUser,
 ):
     if current_user is None:
@@ -174,12 +184,44 @@ async def get_account(
     )
 
 
+@router.get("/download/report_file/{user_id}")
+async def download_file(
+    user_id: int,
+    templates: Templates,
+    request: Request,
+    current_user: CurrentUser,
+):
+    if current_user is None:
+        return templates.TemplateResponse(
+            request=request,
+            name="user/login.jinja",
+            context={"title": "StudConfAU"},
+        )
+
+    if current_user.id != user_id and current_user.role != UserRole.admin:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Попытка скачать чужой файл",
+            headers={"WWW-Authenticate": "Basic"},
+        )
+
+    data = base64.b64decode(current_user.form["content"])
+    return Response(
+        content=data,
+        media_type=current_user.form["content_type"],
+        headers={
+            "Content-Disposition": f"attachment; filename=some_file",
+            "Content-Length": str(len(data)),
+        },
+    )
+
+
 @router.post("/account", response_class=HTMLResponse)
 async def post_account(
     # Request stuff
     templates: Templates,
     request: Request,
-    session: AsyncSession,
+    session: Session,
     current_user: CurrentUser,
     # User
     role: Annotated[str, Form()],
@@ -211,49 +253,51 @@ async def post_account(
         )
     logger.error(current_user)
 
-    report_form: ReportForm | None = None
-    if report_name:
-        content = await report_file.read()
-
-        report_form = ReportForm(
-            report_name=report_name,
-            report_type=report_type,
-            flag_bio_phys=flag_bio_phys,
-            flag_comp_sci=flag_comp_sci,
-            flag_math_phys=flag_math_phys,
-            flag_med_phys=flag_med_phys,
-            flag_nano_tech=flag_nano_tech,
-            flag_general_phys=flag_general_phys,
-            flag_solid_body=flag_solid_body,
-            flag_space_phys=flag_space_phys,
-            content=content,
-            content_type=report_file.content_type,
-        )
-
-    updated_user = current_user.model_copy(
-        update={
-            "email": email,
-            "role": role,
-            "surname": surname,
-            "name": name,
-            "patronymic": patronymic,
-            "organization": organization,
-            "year": year,
-            "contact": contact,
-            "form": report_form,
-        }
-    )
-
     error: str | None = None
     try:
-        async with session() as session:
-            stmt = (
-                update(User)
-                .where(User.id == updated_user.id)
-                .values(**updated_user.model_dump())
+        report_form: ReportForm | None = None
+        if report_name:
+            content = await report_file.read()
+            file = await FileRepository(session).create(
+                content=content,
+                name=report_file.filename,
+                type=report_file.content_type,
             )
-            await session.execute(stmt)
-            await session.commit()
+
+            report_form = ReportForm(
+                report_name=report_name,
+                report_type=report_type,
+                flag_bio_phys=flag_bio_phys,
+                flag_comp_sci=flag_comp_sci,
+                flag_math_phys=flag_math_phys,
+                flag_med_phys=flag_med_phys,
+                flag_nano_tech=flag_nano_tech,
+                flag_general_phys=flag_general_phys,
+                flag_solid_body=flag_solid_body,
+                flag_space_phys=flag_space_phys,
+                file_id=file.id,
+            )
+
+        updated_user = current_user.model_copy(
+            update={
+                "email": email,
+                "role": role,
+                "surname": surname,
+                "name": name,
+                "patronymic": patronymic,
+                "organization": organization,
+                "year": year,
+                "contact": contact,
+                "form": report_form,
+            }
+        )
+
+        stmt = (
+            update(User)
+            .where(User.id == updated_user.id)
+            .values(**updated_user.model_dump())
+        )
+        await session.execute(stmt)
     except SQLAlchemyError as e:
         error = e._message()
         logger.error(e)
@@ -276,7 +320,7 @@ async def post_account(
 async def get_users(
     templates: Templates,
     request: Request,
-    session: AsyncSession,
+    session: Session,
     current_user: CurrentUser,
 ):
     if current_user is None:

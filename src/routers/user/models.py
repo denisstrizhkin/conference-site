@@ -23,8 +23,7 @@ class ReportForm(BaseModel):
     flag_solid_body: bool
     flag_space_phys: bool
 
-    content: bytes
-    content_type: str
+    file_id: int
 
 
 class UserRole(StrEnum):

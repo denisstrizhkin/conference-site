@@ -11,7 +11,7 @@ from sqlmodel import select
 from sqlalchemy.exc import SQLAlchemyError
 
 from .models import User
-from src.db import AsyncSession
+from src.db import Session
 from src.settings import settings
 
 logger = logging.getLogger(__name__)
@@ -47,7 +47,7 @@ def create_access_token(user: User) -> tuple[str, int]:
 
 async def get_current_user(
     request: Request,
-    session: AsyncSession,
+    session: Session,
 ) -> User | None:
     access_token = request.cookies.get("access_token")
     if access_token is None:
@@ -56,7 +56,7 @@ async def get_current_user(
 
     try:
         payload = jwt.decode(
-            access_token[7:],
+            access_token,
             settings.jwt_secret,
             algorithms=[settings.jwt_algorithm],
         )
@@ -66,12 +66,10 @@ async def get_current_user(
         logger.error(e)
         return None
 
-    logger.error(user)
     try:
         stmt = select(User).where(User.email == user.email)
-        async with session() as session:
-            result = await session.execute(stmt)
-            user = result.one()[0]
+        result = await session.execute(stmt)
+        user = result.scalar_one()
     except SQLAlchemyError as e:
         logger.error(e)
         return None
