@@ -48,10 +48,9 @@ async def register(
 ):
     error: str | None = None
     try:
-        async with session() as session:
-            await UserRepository(session).create(
-                email, PassHasher.get_password_hash(password)
-            )
+        await UserRepository(session).create(
+            email, PassHasher.get_password_hash(password)
+        )
     except IntegrityError as e:
         error = "Такой пользователь уже сущевствует"
         logger.error(e)
@@ -91,16 +90,14 @@ async def login(
     error: str | None = None
     try:
         user = await UserRepository(session).get(email)
-        logger.error(type(user.form))
-
-        if not PassHasher.verify_password(password, user.password):
-            error = "Неправильная почта или пароль"
-    except NoResultFound as e:
-        error = "Такого пользователя не сущевствует"
-        logger.error(e)
     except SQLAlchemyError as e:
         error = e._message()
         logger.error(e)
+
+    if user is None:
+        error = "Такого пользователя не сущевствует"
+    if not PassHasher.verify_password(password, user.password):
+        error = "Неправильная почта или пароль"
 
     if error is not None:
         return templates.TemplateResponse(
@@ -109,7 +106,7 @@ async def login(
             context={"title": "StudConfAU", "error": error},
         )
 
-    token, expires = create_access_token(user)
+    token, expires = create_access_token(user.email)
 
     # Set cookie with token
     response = RedirectResponse(

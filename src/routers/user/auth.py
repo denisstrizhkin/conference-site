@@ -7,7 +7,6 @@ from passlib.context import CryptContext
 from jose import jwt, JWTError
 from fastapi import Depends, Request
 from pydantic import BaseModel
-from sqlmodel import select
 from sqlalchemy.exc import SQLAlchemyError
 
 from src.db import Session
@@ -32,13 +31,13 @@ class PassHasher:
 
 
 class Token(BaseModel):
-    user: User
+    email: str
     expires: datetime
 
 
-def create_access_token(user: User) -> tuple[str, int]:
+def create_access_token(email: str) -> tuple[str, int]:
     expires = datetime.utcnow() + timedelta(minutes=settings.jwt_expire_minutes)
-    token = Token(user=user, expires=expires)
+    token = Token(email=email, expires=expires)
     to_encode = token.model_dump_json()
     to_encode = json.loads(to_encode)
     encoded_jwt = jwt.encode(
@@ -63,13 +62,12 @@ async def get_current_user(
             algorithms=[settings.jwt_algorithm],
         )
         token = Token(**payload)
-        user = token.user
     except JWTError as e:
         logger.error(e)
         return None
 
     try:
-        user = await UserRepository(session).get(user.email)
+        user = await UserRepository(session).get(token.email)
     except SQLAlchemyError as e:
         logger.error(e)
         return None

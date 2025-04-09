@@ -8,13 +8,13 @@ class UserRepository:
     def __init__(self, session: AsyncSession):
         self._session = session
 
-    async def get(self, email: str) -> User:
+    async def get(self, email: str) -> User | None:
         stmt = select(User).where(User.email == email)
         result = await self._session.execute(stmt)
-        user: User = result.one()[0]
-        if user.form is None:
-            return user
-        return user.model_copy(update={"form": ReportForm(**user.form)})
+        user: User = result.scalar_one_or_none()
+        if user and user.form:
+            return user.model_copy(update={"form": ReportForm(**user.form)})
+        return user
 
     async def create(self, email: str, hashed_password: str) -> User:
         user = User(email=email, password=hashed_password)
