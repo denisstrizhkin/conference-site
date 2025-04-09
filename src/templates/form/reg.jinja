@@ -217,14 +217,33 @@
                     </a href="/static/appl_templates/abstract.tex">.tex</a>.
                 </p>
                 <div class="mt-4">
-                    <a href="/files/{{ user.form.file_id }}" class="btn btn-primary" download>
-                            Download
-                    </a>
                     <label class="form-label">
-                        <input class="form-control" type="file" name="report_file" required>
+                        <input class="d-none"
+                               id="reportFileInput"
+                               type="file"
+                               name="report_file"
+                               accept=".docx,.tex"
+                               required>
+                        <!-- Custom styled button -->
+                        <button class="btn btn-primary"
+                                type="button"
+                                onclick="document.getElementById('reportFileInput').click()">Выбрать</button>
+                        <!-- Display area for filename -->
+                        <span id="reportFileName">
+                            {% if report_file %}
+                                {{ report_file.name }}
+                            {% else %}
+                                Файл не выбран
+                            {% endif %}
+                        </span>
                     </label>
                     <div class="invalid-feedback">Неаобходимо выбрать файл!</div>
                 </div>
+                {% if report_file %}
+                    <a href="/files/{{ report_file.id }}"
+                       class="btn btn-primary mt-1"
+                       download>Скачать</a>
+                {% endif %}
             </div>
         </div>
         <hr class="my-5">
@@ -245,9 +264,8 @@
 </div>
 <script>
 "use strict";
-// Wait for DOM to load
-document.addEventListener("DOMContentLoaded", function () {
-    // Get elements
+
+function updateForm() {
     const selectedRole = document.getElementById("selectedRole");
     const reportFormParent = document.getElementById(
         "reportFormParent"
@@ -272,6 +290,7 @@ document.addEventListener("DOMContentLoaded", function () {
     selectedRole.addEventListener("change", function (e) {
         if (e.target.value === "participant") {
             restoreReportForm();
+            updateFile();
         } else {
             deleteReportForm();
         }
@@ -279,6 +298,24 @@ document.addEventListener("DOMContentLoaded", function () {
     // Trigger change event immediately in case there's a default value
     deleteReportForm();
     selectedRole.dispatchEvent(new Event("change"));
+}
+
+function updateFile() {
+    const reportFileInput = document.getElementById("reportFileInput");
+    const reportFileName = document.getElementById("reportFileName");
+    reportFileInput.addEventListener("change", function (e) {
+        const fileName = (
+            e.target.files[0]
+            ? e.target.files[0].name
+            : "No file chosen"
+        );
+        reportFileName.textContent = fileName;
+    });
+}
+
+// Wait for DOM to load
+document.addEventListener("DOMContentLoaded", function () {
+    updateForm();
 });
 </script>
 {% endblock %}

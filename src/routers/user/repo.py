@@ -11,7 +11,7 @@ class UserRepository:
     async def get(self, email: str) -> User | None:
         stmt = select(User).where(User.email == email)
         result = await self._session.execute(stmt)
-        user: User = result.scalar_one_or_none()
+        user: User | None = result.scalar_one_or_none()
         if user and user.form:
             return user.model_copy(update={"form": ReportForm(**user.form)})
         return user

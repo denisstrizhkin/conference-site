@@ -1,16 +1,13 @@
 from typing import Annotated, Any
 import logging
-import base64
 
+import fastapi
 from fastapi import (
     APIRouter,
     status,
     Request,
     Form,
     UploadFile,
-    File,
-    HTTPException,
-    Response,
 )
 from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlmodel import select, update
@@ -19,6 +16,7 @@ from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 from src.db import Session
 from src.depends import Templates
 from src.routers.files.repo import FileRepository
+from src.routers.files.models import File
 
 from .repo import UserRepository
 from .models import User, UserRole, ReportType, ReportForm
@@ -96,7 +94,7 @@ async def login(
 
     if user is None:
         error = "Такого пользователя не сущевствует"
-    if not PassHasher.verify_password(password, user.password):
+    if user and not PassHasher.verify_password(password, user.password):
         error = "Неправильная почта или пароль"
 
     if error is not None:
@@ -151,11 +149,14 @@ def generate_roles_list(current_role: UserRole) -> list[tuple[UserRole, str]]:
         ]
 
 
-def account_context(user: User, error: str | None = None) -> dict[Any, Any]:
+def account_context(
+    user: User, report_file: File | None = None, error: str | None = None
+) -> dict[Any, Any]:
     return {
         "title": "StudConfAU",
         "error": error,
         "user": user,
+        "report_file": report_file,
         "roles": generate_roles_list(user.role),
     }
 
@@ -174,10 +175,14 @@ async def get_account(
             context={"title": "StudConfAU"},
         )
 
+    file: File | None = None
+    if current_user.form:
+        file = await FileRepository(session).get(current_user.form.file_id)
+
     return templates.TemplateResponse(
         request=request,
         name="form/reg.jinja",
-        context=account_context(current_user),
+        context=account_context(current_user, file),
     )
 
 
@@ -208,7 +213,7 @@ async def post_account(
     flag_general_phys: Annotated[bool, Form()] = False,
     flag_solid_body: Annotated[bool, Form()] = False,
     flag_space_phys: Annotated[bool, Form()] = False,
-    report_file: UploadFile = File(...),
+    report_file: Annotated[UploadFile | None, fastapi.File(...)] = None,
 ):
     if current_user is None:
         return templates.TemplateResponse(
@@ -221,6 +226,7 @@ async def post_account(
     error: str | None = None
     try:
         report_form: ReportForm | None = None
+        file: File | None = None
         if report_name:
             content = await report_file.read()
             file = await FileRepository(session).create(
@@ -277,7 +283,7 @@ async def post_account(
     return templates.TemplateResponse(
         request=request,
         name="form/reg.jinja",
-        context=account_context(updated_user, error),
+        context=account_context(updated_user, file, error),
     )
 
 
@@ -295,8 +301,7 @@ async def get_users(
             context={"title": "StudConfAU"},
         )
 
-    async with session() as session:
-        result = await session.execute(select(User))
+    result = await session.execute(select(User))
     users = result.scalars().all()
     return templates.TemplateResponse(
         request=request,
