@@ -5,6 +5,7 @@ from fastapi.staticfiles import StaticFiles
 
 from src.routers import IndexRouter
 from src.routers.user import UserRouter
+from src.routers.files import FileRouter
 
 
 app = FastAPI()
@@ -15,3 +16,4 @@ app.mount(
 )
 app.include_router(IndexRouter)
 app.include_router(UserRouter)
+app.include_router(FileRouter)

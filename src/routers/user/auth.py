@@ -10,9 +10,11 @@ from pydantic import BaseModel
 from sqlmodel import select
 from sqlalchemy.exc import SQLAlchemyError
 
-from .models import User
 from src.db import Session
 from src.settings import settings
+
+from .models import User
+from .repo import UserRepository
 
 logger = logging.getLogger(__name__)
 
@@ -67,9 +69,7 @@ async def get_current_user(
         return None
 
     try:
-        stmt = select(User).where(User.email == user.email)
-        result = await session.execute(stmt)
-        user = result.scalar_one()
+        user = await UserRepository(session).get(user.email)
     except SQLAlchemyError as e:
         logger.error(e)
         return None

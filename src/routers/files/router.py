@@ -40,8 +40,7 @@ async def download_file(
         )
 
     try:
-        async with session() as session:
-            file = await FileRepository(session).get(file_id)
+        file = await FileRepository(session).get(file_id)
     except SQLAlchemyError as e:
         logger.exception(e)
         raise HTTPException(
