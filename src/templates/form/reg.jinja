@@ -213,56 +213,56 @@
                         </p>
                         <p class="fs-6 pb-2">
                             Ваши тезисы, оформленные в соответствии с шаблоном в формате
-                        </a href="/static/appl_templates/abstract.docx">.docx</a> или
-                    </a href="/static/appl_templates/abstract.tex">.tex</a>.
-                </p>
-                <div class="mt-4">
-                    <label class="form-label">
-                        <input class="d-none"
-                               id="reportFileInput"
-                               type="file"
-                               name="report_file"
-                               accept=".docx,.tex"
-                               required>
-                        <!-- Custom styled button -->
-                        <button class="btn btn-primary"
-                                type="button"
-                                onclick="document.getElementById('reportFileInput').click()">Выбрать</button>
-                        <!-- Display area for filename -->
-                        <span id="reportFileName">
-                            {% if report_file %}
-                                {{ report_file.name }}
-                            {% else %}
-                                Файл не выбран
-                            {% endif %}
-                        </span>
-                    </label>
-                    <div class="invalid-feedback">Неаобходимо выбрать файл!</div>
+                            <a href="/static/appl_templates/abstract.docx">.docx</a> или
+                            <a href="/static/appl_templates/abstract.tex">.tex</a>.
+                        </p>
+                        <div class="mt-4">
+                            <label class="form-label">
+                                <input class="d-none"
+                                       id="reportFileInput"
+                                       type="file"
+                                       name="report_file"
+                                       accept=".docx,.tex"
+                                       required>
+                                <!-- Custom styled button -->
+                                <button class="btn btn-primary"
+                                        type="button"
+                                        onclick="document.getElementById('reportFileInput').click()">Выбрать</button>
+                                <!-- Display area for filename -->
+                                <span id="reportFileName">
+                                    {% if report_file %}
+                                        {{ report_file.name }}
+                                    {% else %}
+                                        Файл не выбран
+                                    {% endif %}
+                                </span>
+                            </label>
+                            <div class="invalid-feedback">Неаобходимо выбрать файл!</div>
+                        </div>
+                        {% if report_file %}
+                            <a href="/files/{{ report_file.id }}"
+                               class="btn btn-primary mt-1"
+                               download>Скачать</a>
+                        {% endif %}
+                    </div>
                 </div>
-                {% if report_file %}
-                    <a href="/files/{{ report_file.id }}"
-                       class="btn btn-primary mt-1"
-                       download>Скачать</a>
-                {% endif %}
-            </div>
+                <hr class="my-5">
+                <div class="d-flex justify-content-center mt-3">
+                    <button class="btn btn-primary btn-lg" type="submit">Сохранить</button>
+                </div>
+            </form>
         </div>
-        <hr class="my-5">
-        <div class="d-flex justify-content-center mt-3">
-            <button class="btn btn-primary btn-lg" type="submit">Сохранить</button>
-        </div>
-    </form>
-</div>
-</div>
-<div class="d-flex justify-content-center mt-3">
-    <div class="col-md-8 text-center">
-        <form action="/user/logout" method="post" class="d-inline">
-            <button type="submit" class="btn btn-danger btn-lg">
-                <i class="bi bi-box-arrow-right"></i> Выйти
-            </button>
-        </form>
     </div>
-</div>
-<script>
+    <div class="d-flex justify-content-center mt-3">
+        <div class="col-md-8 text-center">
+            <form action="/user/logout" method="post" class="d-inline">
+                <button type="submit" class="btn btn-danger btn-lg">
+                    <i class="bi bi-box-arrow-right"></i> Выйти
+                </button>
+            </form>
+        </div>
+    </div>
+    <script>
 "use strict";
 
 function updateForm() {
@@ -317,5 +317,5 @@ function updateFile() {
 document.addEventListener("DOMContentLoaded", function () {
     updateForm();
 });
-</script>
+    </script>
 {% endblock %}
