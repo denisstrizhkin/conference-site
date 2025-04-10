@@ -261,24 +261,24 @@ async def post_account(
     )
 
 
-@router.get("/", response_class=HTMLResponse)
-async def get_users(
-    templates: Templates,
-    request: Request,
-    session: Session,
-    current_user: CurrentUser,
-):
-    if current_user is None:
-        return templates.TemplateResponse(
-            request=request,
-            name="user/login.jinja",
-            context=BaseContext().model_dump(),
-        )
+# @router.get("/", response_class=HTMLResponse)
+# async def get_users(
+#     templates: Templates,
+#     request: Request,
+#     session: Session,
+#     current_user: CurrentUser,
+# ):
+#     if current_user is None:
+#         return templates.TemplateResponse(
+#             request=request,
+#             name="user/login.jinja",
+#             context=BaseContext().model_dump(),
+#         )
 
-    result = await session.execute(select(User))
-    users = result.scalars().all()
-    return templates.TemplateResponse(
-        request=request,
-        name="user/list.jinja",
-        context={"title": "StudConfAU", "users": users},
-    )
+#     result = await session.execute(select(User))
+#     users = result.scalars().all()
+#     return templates.TemplateResponse(
+#         request=request,
+#         name="user/list.jinja",
+#         context={"title": "StudConfAU", "users": users},
+#     )
