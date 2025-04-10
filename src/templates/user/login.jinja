@@ -5,7 +5,7 @@
         <div class="card text-center card__form">
             <h4 class="card-header">Войти</h4>
             <div class="card-body">
-                <p>{{ error }}</p>
+                {% if error %}<div class="alert alert-danger" role="alert">{{ error }}</div>{% endif %}
                 <form action="/user/login" method="post">
                     <div class="mb-3">
                         <label class="form-label">

@@ -1,11 +1,11 @@
 {% extends "base.jinja" %}
 {% block title %}{{ title }}{% endblock %}
 {% block main %}
-    <p>{{ error }}</p>
     <div class="d-flex justify-content-center">
         <div class="card text-center card__form">
             <h4 class="card-header">Создать аккаунт</h4>
             <div class="card-body">
+                {% if error %}<div class="alert alert-danger" role="alert">{{ error }}</div>{% endif %}
                 <form action="/user/register" method="post">
                     <div class="mb-3">
                         <label class="form-label">
