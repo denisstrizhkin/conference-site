@@ -4,7 +4,7 @@ import logging
 import fastapi
 from fastapi import APIRouter, status, Request, Form, UploadFile, HTTPException
 from fastapi.responses import HTMLResponse, RedirectResponse
-from sqlmodel import select, update
+from sqlmodel import update
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 
 from src.schemas import BaseContext
@@ -16,7 +16,11 @@ from src.routers.files.models import File
 from .schemas import UserContext
 from .repo import UserRepository
 from .models import User, ReportType, ReportForm, UserRole
-from .auth import create_access_token, CurrentUser, PassHasher
+from .auth import (
+    create_access_token,
+    PassHasher,
+    CurrentUser,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -139,13 +143,7 @@ async def get_account(
     session: Session,
     current_user: CurrentUser,
 ):
-    if current_user is None:
-        return templates.TemplateResponse(
-            request=request,
-            name="user/login.jinja",
-            context=BaseContext().model_dump(),
-        )
-
+    logger.error(current_user.model_dump())
     file: File | None = None
     if current_user.form:
         file = await FileRepository(session).get(current_user.form.file_id)
@@ -186,12 +184,6 @@ async def post_account(
     flag_space_phys: Annotated[bool, Form()] = False,
     report_file: Annotated[UploadFile | None, fastapi.File(...)] = None,
 ):
-    if current_user is None:
-        return templates.TemplateResponse(
-            request=request,
-            name="user/login.jinja",
-            context=BaseContext().model_dump(),
-        )
     if role == UserRole.admin and current_user.role != UserRole.admin:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
 
@@ -268,13 +260,6 @@ async def post_account(
 #     session: Session,
 #     current_user: CurrentUser,
 # ):
-#     if current_user is None:
-#         return templates.TemplateResponse(
-#             request=request,
-#             name="user/login.jinja",
-#             context=BaseContext().model_dump(),
-#         )
-
 #     result = await session.execute(select(User))
 #     users = result.scalars().all()
 #     return templates.TemplateResponse(

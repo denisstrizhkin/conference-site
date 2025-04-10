@@ -4,7 +4,6 @@ import urllib
 from fastapi import APIRouter, Request, Response, HTTPException, status
 from sqlalchemy.exc import SQLAlchemyError
 
-from src.schemas import BaseContext
 from src.depends import Templates
 from src.db import Session
 from src.routers.user.models import UserRole
@@ -25,21 +24,11 @@ async def download_file(
     current_user: CurrentUser,
     session: Session,
 ):
-    if current_user is None:
-        return templates.TemplateResponse(
-            request=request,
-            name="user/login.jinja",
-            context=BaseContext().model_dump(),
-        )
-
     if (
         current_user.form.file_id != file_id
         and current_user.role != UserRole.admin
     ):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Попытка скачать чужой файл",
-        )
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
 
     try:
         file = await FileRepository(session).get(file_id)

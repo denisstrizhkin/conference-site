@@ -1,11 +1,11 @@
-from typing import Annotated
+from typing import Annotated, Optional
 from datetime import datetime, timedelta
 import json
 import logging
 
 from passlib.context import CryptContext
 from jose import jwt, JWTError
-from fastapi import Depends, Request
+from fastapi import Depends, Request, HTTPException, status
 from pydantic import BaseModel
 from sqlalchemy.exc import SQLAlchemyError
 
@@ -46,10 +46,10 @@ def create_access_token(email: str) -> tuple[str, int]:
     return encoded_jwt, settings.jwt_expire_minutes * 60
 
 
-async def get_current_user(
+async def get_current_user_or_none(
     request: Request,
     session: Session,
-) -> User | None:
+) -> Optional[User]:
     access_token = request.cookies.get("access_token")
     if access_token is None:
         logger.error("no access token provided")
@@ -75,4 +75,15 @@ async def get_current_user(
     return user
 
 
-CurrentUser = Annotated[User | None, Depends(get_current_user)]
+CurrentUserOrNone = Annotated[Optional[User], Depends(get_current_user_or_none)]
+
+
+async def get_current_user(
+    request: Request, session: Session, current_user: CurrentUserOrNone
+) -> User:
+    if current_user is None:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)
+    return current_user
+
+
+CurrentUser = Annotated[User, Depends(get_current_user)]
