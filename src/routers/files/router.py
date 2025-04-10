@@ -1,4 +1,5 @@
 import logging
+import urllib
 
 from fastapi import APIRouter, Request, Response, HTTPException, status
 from sqlalchemy.exc import SQLAlchemyError
@@ -54,11 +55,12 @@ async def download_file(
             status_code=status.HTTP_404_NOT_FOUND,
         )
 
+    file_name = urllib.parse.quote(file.name.encode("utf8"))
     return Response(
         content=file.content,
         media_type=file.type,
         headers={
-            "Content-Disposition": f"attachment; filename={file.name}",
+            "Content-Disposition": f"attachment; filename*=utf-8''{file_name}",
             "Content-Length": str(len(file.content)),
         },
     )
