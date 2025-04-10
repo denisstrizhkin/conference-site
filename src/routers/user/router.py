@@ -89,7 +89,7 @@ async def login(
         logger.error(e)
 
     if user is None:
-        error = "Такого пользователя не сущевствует"
+        error = "Такого пользователя не существует"
     if user and not PassHasher.verify_password(password, user.password):
         error = "Неправильная почта или пароль"
 
