@@ -12,6 +12,7 @@ BASE_DIR = Path(__file__).parent.parent
 
 class Settings(BaseSettings):
     echo_sql: bool
+    show_docs: bool
     db_uri: str = f"sqlite+aiosqlite:///{BASE_DIR / "data.db"}"
     jwt_secret: str
     jwt_algorithm: str
