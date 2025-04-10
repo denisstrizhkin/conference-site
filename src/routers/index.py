@@ -1,6 +1,7 @@
-from fastapi import APIRouter, Depends, Path, Query, status, Request
+from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse
 
+from src.schemas import BaseContext
 from src.depends import Templates
 
 router: APIRouter = APIRouter()
@@ -9,18 +10,14 @@ router: APIRouter = APIRouter()
 @router.get("/", response_class=HTMLResponse)
 async def index(templates: Templates, request: Request):
     return templates.TemplateResponse(
-        request=request,
-        name="index.jinja",
-        context={"title": "StudConfAU"}
+        request=request, name="index.jinja", context=BaseContext().model_dump()
     )
 
 
 @router.get("/about", response_class=HTMLResponse)
 async def about(templates: Templates, request: Request):
     return templates.TemplateResponse(
-        request=request,
-        name="about.jinja",
-        context={"title": "StudConfAU"}
+        request=request, name="about.jinja", context=BaseContext().model_dump()
     )
 
 
@@ -29,7 +26,7 @@ async def participants(templates: Templates, request: Request):
     return templates.TemplateResponse(
         request=request,
         name="participants.jinja",
-        context={"title": "StudConfAU"}
+        context=BaseContext().model_dump(),
     )
 
 
@@ -38,5 +35,5 @@ async def gallery(templates: Templates, request: Request):
     return templates.TemplateResponse(
         request=request,
         name="gallery.jinja",
-        context={"title": "StudConfAU"}
+        context=BaseContext().model_dump(),
     )

@@ -3,6 +3,7 @@ import logging
 from fastapi import APIRouter, Request, Response, HTTPException, status
 from sqlalchemy.exc import SQLAlchemyError
 
+from src.schemas import BaseContext
 from src.depends import Templates
 from src.db import Session
 from src.routers.user.models import UserRole
@@ -27,7 +28,7 @@ async def download_file(
         return templates.TemplateResponse(
             request=request,
             name="user/login.jinja",
-            context={"title": "StudConfAU"},
+            context=BaseContext().model_dump(),
         )
 
     if (
@@ -51,7 +52,6 @@ async def download_file(
     if file is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Такого файла не существует",
         )
 
     return Response(

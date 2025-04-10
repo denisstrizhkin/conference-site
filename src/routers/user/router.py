@@ -1,4 +1,4 @@
-from typing import Annotated, Any
+from typing import Annotated
 import logging
 
 import fastapi
@@ -13,13 +13,15 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlmodel import select, update
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 
+from src.schemas import BaseContext
 from src.db import Session
 from src.depends import Templates
 from src.routers.files.repo import FileRepository
 from src.routers.files.models import File
 
+from .schemas import UserContext
 from .repo import UserRepository
-from .models import User, UserRole, ReportType, ReportForm
+from .models import User, ReportType, ReportForm
 from .auth import create_access_token, CurrentUser, PassHasher
 
 logger = logging.getLogger(__name__)
@@ -32,7 +34,7 @@ async def register_form(templates: Templates, request: Request):
     return templates.TemplateResponse(
         request=request,
         name="user/register.jinja",
-        context={"title": "StudConfAU"},
+        context=BaseContext().model_dump(),
     )
 
 
@@ -60,7 +62,7 @@ async def register(
         return templates.TemplateResponse(
             request=request,
             name="user/register.jinja",
-            context={"title": "StudConfAU", "error": error},
+            context=BaseContext(error=error).model_dump(),
         )
 
     return RedirectResponse(
@@ -73,7 +75,7 @@ async def login_form(templates: Templates, request: Request):
     return templates.TemplateResponse(
         request=request,
         name="user/login.jinja",
-        context={"title": "StudConfAU"},
+        context=BaseContext().model_dump(),
     )
 
 
@@ -101,7 +103,7 @@ async def login(
         return templates.TemplateResponse(
             request=request,
             name="user/login.jinja",
-            context={"title": "StudConfAU", "error": error},
+            context=BaseContext(error=error).model_dump(),
         )
 
     token, expires = create_access_token(user.email)
@@ -136,31 +138,6 @@ async def logout():
     return response
 
 
-def generate_roles_list(current_role: UserRole) -> list[tuple[UserRole, str]]:
-    if current_role == UserRole.admin:
-        return [
-            (UserRole.admin, "Админ"),
-        ]
-    else:
-        return [
-            (UserRole.basic, "Не учавствую"),
-            (UserRole.viewer, "Без доклада"),
-            (UserRole.participant, "С докладом"),
-        ]
-
-
-def account_context(
-    user: User, report_file: File | None = None, error: str | None = None
-) -> dict[Any, Any]:
-    return {
-        "title": "StudConfAU",
-        "error": error,
-        "user": user,
-        "report_file": report_file,
-        "roles": generate_roles_list(user.role),
-    }
-
-
 @router.get("/account", response_class=HTMLResponse)
 async def get_account(
     templates: Templates,
@@ -172,7 +149,7 @@ async def get_account(
         return templates.TemplateResponse(
             request=request,
             name="user/login.jinja",
-            context={"title": "StudConfAU"},
+            context=BaseContext().model_dump(),
         )
 
     file: File | None = None
@@ -182,7 +159,7 @@ async def get_account(
     return templates.TemplateResponse(
         request=request,
         name="form/reg.jinja",
-        context=account_context(current_user, file),
+        context=UserContext(user=current_user, file=file).model_dump(),
     )
 
 
@@ -219,7 +196,7 @@ async def post_account(
         return templates.TemplateResponse(
             request=request,
             name="user/login.jinja",
-            context={"title": "StudConfAU"},
+            context=BaseContext().model_dump(),
         )
     logger.error(current_user)
 
@@ -277,13 +254,15 @@ async def post_account(
         return templates.TemplateResponse(
             request=request,
             name="form/reg.jinja",
-            context=account_context(current_user, error),
+            context=UserContext(user=current_user, error=error).model_dump(),
         )
 
     return templates.TemplateResponse(
         request=request,
         name="form/reg.jinja",
-        context=account_context(updated_user, file, error),
+        context=UserContext(
+            user=updated_user, file=file, error=error
+        ).model_dump(),
     )
 
 
@@ -298,7 +277,7 @@ async def get_users(
         return templates.TemplateResponse(
             request=request,
             name="user/login.jinja",
-            context={"title": "StudConfAU"},
+            context=BaseContext().model_dump(),
         )
 
     result = await session.execute(select(User))
