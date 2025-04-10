@@ -2,13 +2,7 @@ from typing import Annotated
 import logging
 
 import fastapi
-from fastapi import (
-    APIRouter,
-    status,
-    Request,
-    Form,
-    UploadFile,
-)
+from fastapi import APIRouter, status, Request, Form, UploadFile, HTTPException
 from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlmodel import select, update
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError
@@ -21,7 +15,7 @@ from src.routers.files.models import File
 
 from .schemas import UserContext
 from .repo import UserRepository
-from .models import User, ReportType, ReportForm
+from .models import User, ReportType, ReportForm, UserRole
 from .auth import create_access_token, CurrentUser, PassHasher
 
 logger = logging.getLogger(__name__)
@@ -198,7 +192,8 @@ async def post_account(
             name="user/login.jinja",
             context=BaseContext().model_dump(),
         )
-    logger.error(current_user)
+    if role == UserRole.admin and current_user.role != UserRole.admin:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
 
     error: str | None = None
     try:
