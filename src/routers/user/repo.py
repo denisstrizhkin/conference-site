@@ -3,7 +3,7 @@ from typing import Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 from .models import User, ReportForm
 
-from sqlmodel import select
+from sqlmodel import select, update
 
 
 class UserRepository:
@@ -35,3 +35,10 @@ class UserRepository:
         await self._session.flush()
         await self._session.refresh(user)
         return user
+
+    async def update(self, user: User) -> User:
+        stmt = (
+            update(User).where(User.id == user.id).values(**user.model_dump())
+        )
+        await self._session.execute(stmt)
+        return await self.get_one(user.id)

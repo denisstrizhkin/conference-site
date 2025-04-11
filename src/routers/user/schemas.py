@@ -1,19 +1,53 @@
 from typing_extensions import Self
 from typing import Optional
 
-from pydantic import model_validator
+from fastapi import UploadFile
+from pydantic import BaseModel, model_validator
 
 from src.routers.files import File
 from src.schemas import BaseContext
 
-from .models import User, UserRole
+from .models import User, UserRole, ReportType
+
+
+class LoginForm(BaseModel):
+    email: str
+    password: str
+
+
+class RegisterForm(LoginForm): ...
+
+
+class UserForm(BaseModel):
+    # User data
+    role: UserRole
+    email: str
+    surname: str
+    name: str
+    patronymic: Optional[str] = None
+    organization: str
+    year: int
+    contact: str
+
+    # Report Form
+    report_name: Optional[str] = None
+    report_type: Optional[ReportType] = None
+    flag_bio_phys: bool = False
+    flag_comp_sci: bool = False
+    flag_math_phys: bool = False
+    flag_med_phys: bool = False
+    flag_nano_tech: bool = False
+    flag_general_phys: bool = False
+    flag_solid_body: bool = False
+    flag_space_phys: bool = False
+    report_file: Optional[UploadFile] = None
 
 
 class UserContext(BaseContext):
     user: Optional[User] = None
 
 
-class UsersContext(BaseContext):
+class UsersContext(UserContext):
     users: list[User]
 
 

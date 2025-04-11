@@ -1,10 +1,8 @@
 from typing import Annotated
 import logging
 
-import fastapi
-from fastapi import APIRouter, status, Request, Form, UploadFile, HTTPException
+from fastapi import APIRouter, status, Request, HTTPException, Form
 from fastapi.responses import HTMLResponse, RedirectResponse
-from sqlmodel import update
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 
 from src.schemas import BaseContext
@@ -13,9 +11,15 @@ from src.depends import Templates
 from src.routers.files.repo import FileRepository
 from src.routers.files.models import File
 
-from .schemas import UserFormContext, UsersContext
+from .schemas import (
+    UserFormContext,
+    UsersContext,
+    RegisterForm,
+    LoginForm,
+    UserForm,
+)
 from .repo import UserRepository
-from .models import User, ReportType, ReportForm, UserRole
+from .models import ReportForm, UserRole
 from .auth import (
     create_access_token,
     PassHasher,
@@ -39,15 +43,14 @@ async def register_form(templates: Templates, request: Request):
 @router.post("/register")
 async def register(
     request: Request,
-    email: Annotated[str, Form()],
-    password: Annotated[str, Form()],
+    form: Annotated[RegisterForm, Form()],
     session: Session,
     templates: Templates,
 ):
     error: str | None = None
     try:
         await UserRepository(session).create(
-            email, PassHasher.get_password_hash(password)
+            form.email, PassHasher.get_password_hash(form.password)
         )
     except IntegrityError as e:
         error = "Такой пользователь уже сущевствует"
@@ -80,21 +83,20 @@ async def login_form(templates: Templates, request: Request):
 @router.post("/login")
 async def login(
     request: Request,
-    email: Annotated[str, Form()],
-    password: Annotated[str, Form()],
+    form: Annotated[LoginForm, Form()],
     session: Session,
     templates: Templates,
 ):
     error: str | None = None
     try:
-        user = await UserRepository(session).get_one(email=email)
+        user = await UserRepository(session).get_one(email=form.email)
     except SQLAlchemyError as e:
         error = e._message()
         logger.error(e)
 
     if user is None:
         error = "Такого пользователя не существует"
-    if user and not PassHasher.verify_password(password, user.password):
+    if user and not PassHasher.verify_password(form.password, user.password):
         error = "Неправильная почта или пароль"
 
     if error is not None:
@@ -164,38 +166,17 @@ async def get_account(
 
 @router.post("/{user_id}", response_class=HTMLResponse)
 async def post_account(
-    # Request stuff
     user_id: int,
     templates: Templates,
     request: Request,
     session: Session,
     current_user: CurrentUser,
-    # User
-    role: Annotated[str, Form()],
-    email: Annotated[str, Form()],
-    surname: Annotated[str, Form()],
-    name: Annotated[str, Form()],
-    patronymic: Annotated[str, Form()],
-    organization: Annotated[str, Form()],
-    year: Annotated[int, Form()],
-    contact: Annotated[str, Form()],
-    # Report Form
-    report_name: Annotated[str | None, Form()] = None,
-    report_type: Annotated[ReportType | None, Form()] = None,
-    flag_bio_phys: Annotated[bool, Form()] = False,
-    flag_comp_sci: Annotated[bool, Form()] = False,
-    flag_math_phys: Annotated[bool, Form()] = False,
-    flag_med_phys: Annotated[bool, Form()] = False,
-    flag_nano_tech: Annotated[bool, Form()] = False,
-    flag_general_phys: Annotated[bool, Form()] = False,
-    flag_solid_body: Annotated[bool, Form()] = False,
-    flag_space_phys: Annotated[bool, Form()] = False,
-    report_file: Annotated[UploadFile | None, fastapi.File(...)] = None,
+    form: Annotated[UserForm, Form()],
 ):
     if current_user.id != user_id and current_user.role != UserRole.admin:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
 
-    if role == UserRole.admin and current_user.role != UserRole.admin:
+    if form.role == UserRole.admin and current_user.role != UserRole.admin:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
 
     user = await UserRepository(session).get_one(user_id)
@@ -206,48 +187,43 @@ async def post_account(
     try:
         report_form: ReportForm | None = None
         file: File | None = None
-        if report_name:
-            content = await report_file.read()
+        if form.report_name:
+            content = await form.report_file.read()
             file = await FileRepository(session).create(
                 content=content,
-                name=report_file.filename,
-                type=report_file.content_type,
+                name=form.report_file.filename,
+                type=form.report_file.content_type,
             )
 
             report_form = ReportForm(
-                report_name=report_name,
-                report_type=report_type,
-                flag_bio_phys=flag_bio_phys,
-                flag_comp_sci=flag_comp_sci,
-                flag_math_phys=flag_math_phys,
-                flag_med_phys=flag_med_phys,
-                flag_nano_tech=flag_nano_tech,
-                flag_general_phys=flag_general_phys,
-                flag_solid_body=flag_solid_body,
-                flag_space_phys=flag_space_phys,
+                report_name=form.report_name,
+                report_type=form.report_type,
+                flag_bio_phys=form.flag_bio_phys,
+                flag_comp_sci=form.flag_comp_sci,
+                flag_math_phys=form.flag_math_phys,
+                flag_med_phys=form.flag_med_phys,
+                flag_nano_tech=form.flag_nano_tech,
+                flag_general_phys=form.flag_general_phys,
+                flag_solid_body=form.flag_solid_body,
+                flag_space_phys=form.flag_space_phys,
                 file_id=file.id,
             )
 
         updated_user = user.model_copy(
             update={
-                "email": email,
-                "role": role,
-                "surname": surname,
-                "name": name,
-                "patronymic": patronymic,
-                "organization": organization,
-                "year": year,
-                "contact": contact,
+                "email": form.email,
+                "role": form.role,
+                "surname": form.surname,
+                "name": form.name,
+                "patronymic": form.patronymic,
+                "organization": form.organization,
+                "year": form.year,
+                "contact": form.contact,
                 "form": report_form,
             }
         )
 
-        stmt = (
-            update(User)
-            .where(User.id == updated_user.id)
-            .values(**updated_user.model_dump())
-        )
-        await session.execute(stmt)
+        updated_user = await UserRepository(session).update(updated_user)
     except SQLAlchemyError as e:
         error = e._message()
         logger.error(e)
@@ -282,5 +258,5 @@ async def get_users(
     return templates.TemplateResponse(
         request=request,
         name="user/list.jinja",
-        context=UsersContext(users=users).model_dump(),
+        context=UsersContext(user=current_user, users=users).model_dump(),
     )
