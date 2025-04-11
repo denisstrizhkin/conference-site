@@ -5,7 +5,9 @@
     <div class="d-flex justify-content-center">
         <div class="col-md-8">
             {% if error %}<div class="alert alert-danger" role="alert">{{ error }}</div>{% endif %}
-            <form action="/user/account" enctype="multipart/form-data" method="post">
+            <form action="/user/{{ user.id }}"
+                  enctype="multipart/form-data"
+                  method="post">
                 <div class="mb-3">
                     <label class="form-label">
                         Логин
@@ -222,8 +224,7 @@
                                        id="reportFileInput"
                                        type="file"
                                        name="report_file"
-                                       accept=".docx,.tex"
-                                       required>
+                                       accept=".docx,.tex">
                                 <!-- Custom styled button -->
                                 <button class="btn btn-primary"
                                         type="button"

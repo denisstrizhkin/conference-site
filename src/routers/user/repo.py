@@ -1,3 +1,5 @@
+from typing import Optional
+
 from sqlalchemy.ext.asyncio import AsyncSession
 from .models import User, ReportForm
 
@@ -8,8 +10,14 @@ class UserRepository:
     def __init__(self, session: AsyncSession):
         self._session = session
 
-    async def get(self, email: str) -> User | None:
-        stmt = select(User).where(User.email == email)
+    async def get(
+        self, id: Optional[int] = None, email: Optional[str] = None
+    ) -> Optional[User]:
+        stmt = select(User)
+        if id:
+            stmt = stmt.where(User.id == id)
+        if email:
+            stmt = stmt.where(User.email == email)
         result = await self._session.execute(stmt)
         user: User | None = result.scalar_one_or_none()
         if user and user.form:

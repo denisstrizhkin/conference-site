@@ -31,13 +31,13 @@ class PassHasher:
 
 
 class Token(BaseModel):
-    email: str
+    id: int
     expires: datetime
 
 
-def create_access_token(email: str) -> tuple[str, int]:
+def create_access_token(id: int) -> tuple[str, int]:
     expires = datetime.utcnow() + timedelta(minutes=settings.jwt_expire_minutes)
-    token = Token(email=email, expires=expires)
+    token = Token(id=id, expires=expires)
     to_encode = token.model_dump_json()
     to_encode = json.loads(to_encode)
     encoded_jwt = jwt.encode(
@@ -67,7 +67,7 @@ async def get_current_user_or_none(
         return None
 
     try:
-        user = await UserRepository(session).get(token.email)
+        user = await UserRepository(session).get(token.id)
     except SQLAlchemyError as e:
         logger.error(e)
         return None

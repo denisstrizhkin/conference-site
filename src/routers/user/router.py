@@ -13,7 +13,7 @@ from src.depends import Templates
 from src.routers.files.repo import FileRepository
 from src.routers.files.models import File
 
-from .schemas import UserContext
+from .schemas import UserFormContext
 from .repo import UserRepository
 from .models import User, ReportType, ReportForm, UserRole
 from .auth import (
@@ -87,7 +87,7 @@ async def login(
 ):
     error: str | None = None
     try:
-        user = await UserRepository(session).get(email)
+        user = await UserRepository(session).get(email=email)
     except SQLAlchemyError as e:
         error = e._message()
         logger.error(e)
@@ -104,11 +104,11 @@ async def login(
             context=BaseContext(error=error).model_dump(),
         )
 
-    token, expires = create_access_token(user.email)
+    token, expires = create_access_token(user.id)
 
     # Set cookie with token
     response = RedirectResponse(
-        url="/user/account", status_code=status.HTTP_303_SEE_OTHER
+        url=f"/user/{user.id}", status_code=status.HTTP_303_SEE_OTHER
     )
     response.set_cookie(
         key="access_token",
@@ -136,28 +136,36 @@ async def logout():
     return response
 
 
-@router.get("/account", response_class=HTMLResponse)
+@router.get("/{user_id}", response_class=HTMLResponse)
 async def get_account(
+    user_id: int,
     templates: Templates,
     request: Request,
     session: Session,
     current_user: CurrentUser,
 ):
-    logger.error(current_user.model_dump())
+    if current_user.id != user_id and current_user.role != UserRole.admin:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
+
+    user = await UserRepository(session).get(user_id)
+    if user is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+
     file: File | None = None
-    if current_user.form:
-        file = await FileRepository(session).get(current_user.form.file_id)
+    if user.form:
+        file = await FileRepository(session).get(user.form.file_id)
 
     return templates.TemplateResponse(
         request=request,
         name="form/reg.jinja",
-        context=UserContext(user=current_user, report_file=file).model_dump(),
+        context=UserFormContext(user=user, report_file=file).model_dump(),
     )
 
 
-@router.post("/account", response_class=HTMLResponse)
+@router.post("/{user_id}", response_class=HTMLResponse)
 async def post_account(
     # Request stuff
+    user_id: int,
     templates: Templates,
     request: Request,
     session: Session,
@@ -184,8 +192,15 @@ async def post_account(
     flag_space_phys: Annotated[bool, Form()] = False,
     report_file: Annotated[UploadFile | None, fastapi.File(...)] = None,
 ):
+    if current_user.id != user_id and current_user.role != UserRole.admin:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
+
     if role == UserRole.admin and current_user.role != UserRole.admin:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
+
+    user = await UserRepository(session).get(user_id)
+    if user is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
 
     error: str | None = None
     try:
@@ -213,7 +228,7 @@ async def post_account(
                 file_id=file.id,
             )
 
-        updated_user = current_user.model_copy(
+        updated_user = user.model_copy(
             update={
                 "email": email,
                 "role": role,
@@ -241,13 +256,13 @@ async def post_account(
         return templates.TemplateResponse(
             request=request,
             name="form/reg.jinja",
-            context=UserContext(user=current_user, error=error).model_dump(),
+            context=UserFormContext(user=user, error=error).model_dump(),
         )
 
     return templates.TemplateResponse(
         request=request,
         name="form/reg.jinja",
-        context=UserContext(
+        context=UserFormContext(
             user=updated_user, report_file=file, error=error
         ).model_dump(),
     )

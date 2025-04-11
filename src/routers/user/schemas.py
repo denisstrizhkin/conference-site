@@ -5,10 +5,15 @@ from pydantic import model_validator
 
 from src.routers.files import File
 from src.schemas import BaseContext
+
 from .models import User, UserRole
 
 
 class UserContext(BaseContext):
+    user: Optional[User] = None
+
+
+class UserFormContext(BaseContext):
     user: User
     report_file: Optional[File] = None
     roles: list[tuple[UserRole, str]] = []

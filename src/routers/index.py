@@ -1,39 +1,52 @@
 from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse
 
-from src.schemas import BaseContext
 from src.depends import Templates
+from src.routers.user.schemas import UserContext
+from src.routers.user.auth import CurrentUserOrNone
 
 router: APIRouter = APIRouter()
 
 
 @router.get("/", response_class=HTMLResponse)
-async def index(templates: Templates, request: Request):
+async def index(
+    templates: Templates, request: Request, current_user: CurrentUserOrNone
+):
     return templates.TemplateResponse(
-        request=request, name="index.jinja", context=BaseContext().model_dump()
+        request=request,
+        name="index.jinja",
+        context=UserContext(user=current_user).model_dump(),
     )
 
 
 @router.get("/about", response_class=HTMLResponse)
-async def about(templates: Templates, request: Request):
+async def about(
+    templates: Templates, request: Request, current_user: CurrentUserOrNone
+):
     return templates.TemplateResponse(
-        request=request, name="about.jinja", context=BaseContext().model_dump()
+        request=request,
+        name="about.jinja",
+        context=UserContext(user=current_user).model_dump(),
     )
 
 
 @router.get("/participants", response_class=HTMLResponse)
-async def participants(templates: Templates, request: Request):
+async def participants(
+    templates: Templates, request: Request, current_user: CurrentUserOrNone
+):
     return templates.TemplateResponse(
         request=request,
         name="participants.jinja",
-        context=BaseContext().model_dump(),
+        context=UserContext(user=current_user).model_dump(),
     )
 
 
 @router.get("/gallery", response_class=HTMLResponse)
-async def gallery(templates: Templates, request: Request):
+async def gallery(
+    templates: Templates, request: Request, current_user: CurrentUserOrNone
+):
     return templates.TemplateResponse(
         request=request,
         name="gallery.jinja",
-        context=BaseContext().model_dump(),
+        context=UserContext(user=current_user).model_dump(),
     )
