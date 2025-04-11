@@ -67,7 +67,7 @@ async def get_current_user_or_none(
         return None
 
     try:
-        user = await UserRepository(session).get(token.id)
+        user = await UserRepository(session).get_one(token.id)
     except SQLAlchemyError as e:
         logger.error(e)
         return None

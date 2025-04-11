@@ -13,7 +13,7 @@ from src.depends import Templates
 from src.routers.files.repo import FileRepository
 from src.routers.files.models import File
 
-from .schemas import UserFormContext
+from .schemas import UserFormContext, UsersContext
 from .repo import UserRepository
 from .models import User, ReportType, ReportForm, UserRole
 from .auth import (
@@ -87,7 +87,7 @@ async def login(
 ):
     error: str | None = None
     try:
-        user = await UserRepository(session).get(email=email)
+        user = await UserRepository(session).get_one(email=email)
     except SQLAlchemyError as e:
         error = e._message()
         logger.error(e)
@@ -147,7 +147,7 @@ async def get_account(
     if current_user.id != user_id and current_user.role != UserRole.admin:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
 
-    user = await UserRepository(session).get(user_id)
+    user = await UserRepository(session).get_one(user_id)
     if user is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
 
@@ -198,7 +198,7 @@ async def post_account(
     if role == UserRole.admin and current_user.role != UserRole.admin:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
 
-    user = await UserRepository(session).get(user_id)
+    user = await UserRepository(session).get_one(user_id)
     if user is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
 
@@ -268,17 +268,19 @@ async def post_account(
     )
 
 
-# @router.get("/", response_class=HTMLResponse)
-# async def get_users(
-#     templates: Templates,
-#     request: Request,
-#     session: Session,
-#     current_user: CurrentUser,
-# ):
-#     result = await session.execute(select(User))
-#     users = result.scalars().all()
-#     return templates.TemplateResponse(
-#         request=request,
-#         name="user/list.jinja",
-#         context={"title": "StudConfAU", "users": users},
-#     )
+@router.get("/", response_class=HTMLResponse)
+async def get_users(
+    templates: Templates,
+    request: Request,
+    session: Session,
+    current_user: CurrentUser,
+):
+    if current_user.role != UserRole.admin:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
+
+    users = await UserRepository(session).get()
+    return templates.TemplateResponse(
+        request=request,
+        name="user/list.jinja",
+        context=UsersContext(users=users).model_dump(),
+    )

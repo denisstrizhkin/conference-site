@@ -13,6 +13,10 @@ class UserContext(BaseContext):
     user: Optional[User] = None
 
 
+class UsersContext(BaseContext):
+    users: list[User]
+
+
 class UserFormContext(BaseContext):
     user: User
     report_file: Optional[File] = None

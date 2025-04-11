@@ -1,6 +1,7 @@
 {% extends "base.jinja" %}
 {% block title %}{{ title }}{% endblock %}
 {% block main %}
+    {% if user.role == "admin" %}<a class="btn btn-primary" href="/user/">Список участников</a>{% endif %}
     <h4 class="mb-3 text-center">Регистрационная форма:</h4>
     <div class="d-flex justify-content-center">
         <div class="col-md-8">

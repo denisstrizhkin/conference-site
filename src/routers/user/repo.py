@@ -10,7 +10,7 @@ class UserRepository:
     def __init__(self, session: AsyncSession):
         self._session = session
 
-    async def get(
+    async def get_one(
         self, id: Optional[int] = None, email: Optional[str] = None
     ) -> Optional[User]:
         stmt = select(User)
@@ -23,6 +23,11 @@ class UserRepository:
         if user and user.form:
             return user.model_copy(update={"form": ReportForm(**user.form)})
         return user
+
+    async def get(self) -> list[User]:
+        stmt = select(User)
+        result = await self._session.execute(stmt)
+        return result.scalars().all()
 
     async def create(self, email: str, hashed_password: str) -> User:
         user = User(email=email, password=hashed_password)
