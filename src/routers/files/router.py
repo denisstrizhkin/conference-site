@@ -1,9 +1,7 @@
 import urllib
 
 from fastapi import APIRouter, Request, Response, HTTPException, status
-from sqlalchemy.exc import SQLAlchemyError
 
-from src.logger import logger
 from src.depends import Templates
 from src.db import Session
 from src.routers.user.models import UserRole
@@ -22,21 +20,15 @@ async def download_file(
     current_user: CurrentUser,
     session: Session,
 ):
-    if (
-        current_user.role != UserRole.admin
-        and current_user.form.file_id != file_id
-    ):
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
+    if current_user.role != UserRole.admin:
+        if current_user.form is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+            )
+        if current_user.form.file_id != file_id:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
 
-    try:
-        file = await FileRepository(session).get(file_id)
-    except SQLAlchemyError as e:
-        logger.exception(e)
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=e._message,
-        )
-
+    file = await FileRepository(session).get_one_or_none(file_id)
     if file is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

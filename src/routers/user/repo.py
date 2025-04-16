@@ -1,10 +1,8 @@
 from typing import Optional
 
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.exc import NoResultFound
 from sqlmodel import select, update
-
-from src.routers.files.models import File
-from src.routers.files.repo import FileRepository
 
 from .models import User
 
@@ -15,17 +13,23 @@ class UserRepository:
 
     async def get_one(
         self, id: Optional[int] = None, email: Optional[str] = None
-    ) -> Optional[User]:
+    ) -> User:
         stmt = select(User)
         if id:
-            stmt = stmt.where(User.id == id)
+            stmt = stmt.where(id == User.id)
         if email:
-            stmt = stmt.where(User.email == email)
+            stmt = stmt.where(email == User.email)
         result = await self._session.execute(stmt)
-        user: Optional[User] = result.scalar_one_or_none()
-        if user is None:
-            return None
+        user = result.scalar_one()
         return User.model_validate(user)
+
+    async def get_one_or_none(
+        self, id: Optional[int] = None, email: Optional[str] = None
+    ) -> Optional[User]:
+        try:
+            return await self.get_one(id, email)
+        except NoResultFound:
+            return None
 
     async def get(self) -> list[User]:
         stmt = select(User)
@@ -39,25 +43,9 @@ class UserRepository:
         await self._session.refresh(user)
         return User.model_validate(user)
 
-    async def update(
-        self, user: User, new_user: User, new_file: Optional[File]
-    ) -> User:
-        file_repo = FileRepository(self._session)
-        if user.form:
-            await file_repo.delete(user.form.file_id)
-        if new_user.form:
-            new_file = await file_repo.create(new_file)
-            new_user = new_user.model_copy(
-                update={
-                    "form": new_user.form.model_copy(
-                        update={"file_id": new_file.id}
-                    )
-                }
-            )
+    async def update(self, user: User) -> User:
         stmt = (
-            update(User)
-            .where(User.id == user.id)
-            .values(**new_user.model_dump())
+            update(User).where(user.id == User.id).values(**user.model_dump())
         )
         await self._session.execute(stmt)
-        return await self.get_one(user.id)
+        return await self.get_one(id=user.id)

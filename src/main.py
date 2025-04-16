@@ -1,3 +1,4 @@
+from typing import Optional
 from pathlib import Path
 
 from fastapi import FastAPI, status, HTTPException, Request
@@ -11,9 +12,9 @@ from src.routers import IndexRouter
 from src.routers.user import UserRouter
 from src.routers.files import FileRouter
 
-openapi_url = "/openapi.json"
-if not settings.show_docs:
-    openapi_url = None
+openapi_url: Optional[str] = None
+if settings.show_docs:
+    openapi_url = "/openapi.json"
 
 app = FastAPI(openapi_url=openapi_url)
 app.mount(

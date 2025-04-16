@@ -1,4 +1,7 @@
+from typing import Optional
+
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.exc import NoResultFound
 from sqlmodel import select, delete
 
 from .models import File
@@ -14,13 +17,17 @@ class FileRepository:
         await self._session.refresh(file)
         return File.model_validate(file)
 
-    async def get(self, id: int) -> File | None:
+    async def get_one(self, id: int) -> File:
         stmt = select(File).where(File.id == id)
         result = await self._session.execute(stmt)
-        file: File | None = result.scalar_one_or_none()
-        if file is None:
-            return None
+        file = result.scalar_one_or_none()
         return File.model_validate(file)
+
+    async def get_one_or_none(self, id: int) -> Optional[File]:
+        try:
+            return await self.get_one(id)
+        except NoResultFound:
+            return None
 
     async def delete(self, id: int):
         stmt = delete(File).where(File.id == id)
