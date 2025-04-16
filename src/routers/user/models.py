@@ -1,4 +1,4 @@
-from typing import Annotated
+from typing import Annotated, Optional
 
 from enum import StrEnum, auto
 from sqlmodel import SQLModel, Field, UniqueConstraint, JSON, Column
@@ -45,14 +45,14 @@ class User(SQLModel, table=True):
         sa_column_kwargs={"server_default": UserRole.basic},
     )
 
-    name: Annotated[str, Field(default=None, nullable=True)]
-    surname: Annotated[str, Field(default=None, nullable=True)]
-    patronymic: Annotated[str, Field(default=None, nullable=True)]
-    organization: Annotated[str, Field(default=None, nullable=True)]
-    year: Annotated[int, Field(default=None, nullable=True)]
-    contact: Annotated[str, Field(default=None, nullable=True)]
+    name: Annotated[Optional[str], Field(default=None, nullable=True)]
+    surname: Annotated[Optional[str], Field(default=None, nullable=True)]
+    patronymic: Annotated[Optional[str], Field(default=None, nullable=True)]
+    organization: Annotated[Optional[str], Field(default=None, nullable=True)]
+    year: Annotated[Optional[int], Field(default=None, nullable=True)]
+    contact: Annotated[Optional[str], Field(default=None, nullable=True)]
 
     form: Annotated[
-        ReportForm,
+        Optional[ReportForm],
         Field(default=None, sa_column=Column(JSON, nullable=True)),
     ]

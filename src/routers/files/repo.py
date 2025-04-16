@@ -18,9 +18,12 @@ class FileRepository:
         self._session.add(file)
         await self._session.flush()
         await self._session.refresh(file)
-        return file
+        return File.model_validate(file)
 
     async def get(self, id: int) -> File | None:
         stmt = select(File).where(File.id == id)
         result = await self._session.execute(stmt)
-        return result.scalar_one_or_none()
+        file: File | None = result.scalar_one_or_none()
+        if file is None:
+            return None
+        return File.model_validate(file)

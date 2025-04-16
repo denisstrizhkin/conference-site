@@ -157,6 +157,7 @@ async def get_account(
     if user.form:
         file = await FileRepository(session).get(user.form.file_id)
 
+    logger.info(user)
     return templates.TemplateResponse(
         request=request,
         name="form/reg.jinja",

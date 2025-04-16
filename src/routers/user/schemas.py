@@ -61,7 +61,7 @@ class UserFormContext(BaseContext):
         if len(self.roles) > 0:
             return self
 
-        if self.user == UserRole.admin:
+        if self.user.role == UserRole.admin:
             self.roles = [
                 (UserRole.admin, "Админ"),
             ]

@@ -1,7 +1,7 @@
 from typing import Optional
 
 from sqlalchemy.ext.asyncio import AsyncSession
-from .models import User, ReportForm
+from .models import User
 
 from sqlmodel import select, update
 
@@ -20,21 +20,21 @@ class UserRepository:
             stmt = stmt.where(User.email == email)
         result = await self._session.execute(stmt)
         user: User | None = result.scalar_one_or_none()
-        if user and user.form:
-            return user.model_copy(update={"form": ReportForm(**user.form)})
-        return user
+        if user is None:
+            return None
+        return User.model_validate(user)
 
     async def get(self) -> list[User]:
         stmt = select(User)
         result = await self._session.execute(stmt)
-        return result.scalars().all()
+        return [User.model_validate(user) for user in result.scalars().all()]
 
     async def create(self, email: str, hashed_password: str) -> User:
         user = User(email=email, password=hashed_password)
         self._session.add(user)
         await self._session.flush()
         await self._session.refresh(user)
-        return user
+        return User.model_validate(user)
 
     async def update(self, user: User) -> User:
         stmt = (
