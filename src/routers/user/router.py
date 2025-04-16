@@ -1,10 +1,10 @@
-from typing import Annotated
-import logging
+from typing import Annotated, Optional
 
 from fastapi import APIRouter, status, Request, HTTPException, Form
 from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 
+from src.logger import logger
 from src.schemas import BaseContext
 from src.db import Session
 from src.depends import Templates
@@ -25,8 +25,6 @@ from .auth import (
     PassHasher,
     CurrentUser,
 )
-
-logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/user")
 
@@ -184,18 +182,17 @@ async def post_account(
     if user is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
 
-    error: str | None = None
+    error: Optional[str] = None
     try:
-        report_form: ReportForm | None = None
-        file: File | None = None
+        new_file: Optional[File] = None
+        report_form: Optional[ReportForm] = None
         if form.report_name:
             content = await form.report_file.read()
-            file = await FileRepository(session).create(
-                content=content,
+            new_file = File(
                 name=form.report_file.filename,
                 type=form.report_file.content_type,
+                content=content,
             )
-
             report_form = ReportForm(
                 report_name=form.report_name,
                 report_type=form.report_type,
@@ -207,10 +204,10 @@ async def post_account(
                 flag_general_phys=form.flag_general_phys,
                 flag_solid_body=form.flag_solid_body,
                 flag_space_phys=form.flag_space_phys,
-                file_id=file.id,
+                file_id=0,
             )
 
-        updated_user = user.model_copy(
+        new_user = user.model_copy(
             update={
                 "email": form.email,
                 "role": form.role,
@@ -224,7 +221,9 @@ async def post_account(
             }
         )
 
-        updated_user = await UserRepository(session).update(updated_user)
+        new_user = await UserRepository(session).update(
+            user, new_user, new_file
+        )
     except SQLAlchemyError as e:
         error = e._message()
         logger.error(e)
@@ -240,7 +239,7 @@ async def post_account(
         request=request,
         name="form/reg.jinja",
         context=UserFormContext(
-            user=updated_user, report_file=file, error=error
+            user=new_user, report_file=new_file, error=error
         ).model_dump(),
     )
 

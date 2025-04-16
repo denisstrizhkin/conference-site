@@ -4,7 +4,7 @@ from typing import Optional
 from fastapi import UploadFile
 from pydantic import BaseModel, model_validator
 
-from src.routers.files import File
+from src.routers.files.models import File
 from src.schemas import BaseContext
 
 from .models import User, UserRole, ReportType

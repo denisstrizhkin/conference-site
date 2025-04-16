@@ -1,17 +1,15 @@
-import logging
 import urllib
 
 from fastapi import APIRouter, Request, Response, HTTPException, status
 from sqlalchemy.exc import SQLAlchemyError
 
+from src.logger import logger
 from src.depends import Templates
 from src.db import Session
 from src.routers.user.models import UserRole
 from src.routers.user.auth import CurrentUser
 
 from .repo import FileRepository
-
-logger = logging.getLogger(__file__)
 
 router = APIRouter(prefix="/files")
 
@@ -25,8 +23,8 @@ async def download_file(
     session: Session,
 ):
     if (
-        current_user.form.file_id != file_id
-        and current_user.role != UserRole.admin
+        current_user.role != UserRole.admin
+        and current_user.form.file_id != file_id
     ):
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
 
