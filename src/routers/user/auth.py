@@ -1,21 +1,16 @@
 from typing import Annotated, Optional
 from datetime import datetime, timedelta
-import json
-import logging
 
 from passlib.context import CryptContext
 from jose import jwt, JWTError
 from fastapi import Depends, Request, HTTPException, status
-from pydantic import BaseModel
-from sqlalchemy.exc import SQLAlchemyError
+from pydantic import BaseModel, ValidationError
 
 from src.db import Session
 from src.settings import settings
 
 from .models import User
 from .repo import UserRepository
-
-logger = logging.getLogger(__name__)
 
 
 class PassHasher:
@@ -38,22 +33,23 @@ class Token(BaseModel):
 def create_access_token(id: int) -> tuple[str, int]:
     expires = datetime.utcnow() + timedelta(minutes=settings.jwt_expire_minutes)
     token = Token(id=id, expires=expires)
-    to_encode = token.model_dump_json()
-    to_encode = json.loads(to_encode)
+    to_encode = token.model_dump(mode="json")
     encoded_jwt = jwt.encode(
         to_encode, settings.jwt_secret, algorithm=settings.jwt_algorithm
     )
     return encoded_jwt, settings.jwt_expire_minutes * 60
 
 
-async def get_current_user_or_none(
+async def get_current_user(
     request: Request,
     session: Session,
-) -> Optional[User]:
+) -> User:
     access_token = request.cookies.get("access_token")
     if access_token is None:
-        logger.error("no access token provided")
-        return None
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="No access token provided.",
+        )
 
     try:
         payload = jwt.decode(
@@ -61,29 +57,36 @@ async def get_current_user_or_none(
             settings.jwt_secret,
             algorithms=[settings.jwt_algorithm],
         )
-        token = Token(**payload)
-    except JWTError as e:
-        logger.error(e)
-        return None
+        token = Token.model_validate(payload)
+    except (JWTError, ValidationError):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Could not decode the token.",
+        )
 
-    try:
-        user = await UserRepository(session).get_one(token.id)
-    except SQLAlchemyError as e:
-        logger.error(e)
-        return None
+    user = await UserRepository(session).get_one(id=token.id)
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="User does not exist.",
+        )
 
     return user
 
 
-CurrentUserOrNone = Annotated[Optional[User], Depends(get_current_user_or_none)]
-
-
-async def get_current_user(
-    request: Request, session: Session, current_user: CurrentUserOrNone
-) -> User:
-    if current_user is None:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)
-    return current_user
-
-
 CurrentUser = Annotated[User, Depends(get_current_user)]
+
+
+async def get_current_user_or_none(
+    request: Request,
+    session: Session,
+) -> Optional[User]:
+    try:
+        return await get_current_user(request, session)
+    except HTTPException as e:
+        if e.status_code == status.HTTP_401_UNAUTHORIZED:
+            return None
+        raise
+
+
+CurrentUserOrNone = Annotated[User, Depends(get_current_user_or_none)]
