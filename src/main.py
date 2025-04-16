@@ -34,6 +34,20 @@ async def not_found_exception_handler(request: Request, exc: HTTPException):
     )
 
 
+@app.exception_handler(status.HTTP_403_FORBIDDEN)
+async def forbidden_exception_handler(request: Request, exc: HTTPException):
+    return get_templates().TemplateResponse(
+        request=request, name="403.jinja", context=BaseContext().model_dump()
+    )
+
+
+@app.exception_handler(status.HTTP_500_INTERNAL_SERVER_ERROR)
+async def internal_exception_handler(request: Request, exc: HTTPException):
+    return get_templates().TemplateResponse(
+        request=request, name="500.jinja", context=BaseContext().model_dump()
+    )
+
+
 @app.exception_handler(status.HTTP_401_UNAUTHORIZED)
 async def unauthorized_exception_handler(request: Request, exc: HTTPException):
     return RedirectResponse(

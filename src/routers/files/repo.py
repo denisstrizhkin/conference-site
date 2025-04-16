@@ -20,7 +20,7 @@ class FileRepository:
     async def get_one(self, id: int) -> File:
         stmt = select(File).where(File.id == id)
         result = await self._session.execute(stmt)
-        file = result.scalar_one_or_none()
+        file = result.scalar_one()
         return File.model_validate(file)
 
     async def get_one_or_none(self, id: int) -> Optional[File]:
