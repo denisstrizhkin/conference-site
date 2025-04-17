@@ -10,14 +10,6 @@ from src.schemas import BaseContext
 from .models import User, UserRole, ReportType
 
 
-class LoginForm(BaseModel):
-    email: str
-    password: str
-
-
-class RegisterForm(LoginForm): ...
-
-
 class UserForm(BaseModel):
     # User data
     role: UserRole

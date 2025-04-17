@@ -4,13 +4,14 @@ from datetime import datetime, timedelta
 from passlib.context import CryptContext
 from jose import jwt, JWTError
 from fastapi import Depends, Request, HTTPException, status
-from pydantic import BaseModel, ValidationError
+from pydantic import ValidationError
 
 from src.db import Session
 from src.settings import settings
+from src.routers.user.models import User
+from src.routers.user.repo import UserRepository
 
-from .models import User
-from .repo import UserRepository
+from .models import Token
 
 
 class PassHasher:
@@ -23,11 +24,6 @@ class PassHasher:
     @staticmethod
     def get_password_hash(password: str) -> str:
         return PassHasher._context.hash(password)
-
-
-class Token(BaseModel):
-    id: int
-    expires: datetime
 
 
 def create_access_token(id: int) -> tuple[str, int]:

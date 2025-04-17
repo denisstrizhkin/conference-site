@@ -11,6 +11,7 @@ from src.depends import get_templates
 from src.routers import IndexRouter
 from src.routers.user import UserRouter
 from src.routers.files import FileRouter
+from src.routers.auth import AuthRouter
 
 openapi_url: Optional[str] = None
 if settings.show_docs:
@@ -23,6 +24,7 @@ app.mount(
     name="static",
 )
 app.include_router(IndexRouter)
+app.include_router(AuthRouter)
 app.include_router(UserRouter)
 app.include_router(FileRouter)
 
@@ -66,5 +68,5 @@ async def internal_exception_handler(request: Request, exc: HTTPException):
 @app.exception_handler(status.HTTP_401_UNAUTHORIZED)
 async def unauthorized_exception_handler(request: Request, exc: HTTPException):
     return RedirectResponse(
-        url="/user/login", status_code=status.HTTP_303_SEE_OTHER
+        url="/auth/login", status_code=status.HTTP_303_SEE_OTHER
     )

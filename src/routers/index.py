@@ -3,7 +3,7 @@ from fastapi.responses import HTMLResponse
 
 from src.depends import Templates
 from src.routers.user.schemas import UserContext
-from src.routers.user.auth import CurrentUserOrNone
+from src.routers.auth.depends import CurrentUserOrNone
 
 router: APIRouter = APIRouter()
 
