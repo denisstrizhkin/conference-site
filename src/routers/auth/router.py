@@ -44,7 +44,7 @@ async def register(
     except IntegrityError:
         return templates.TemplateResponse(
             request=request,
-            name="user/register.jinja",
+            name="auth/register.jinja",
             context=BaseContext(
                 error="Такой пользователь уже сущевствует."
             ).model_dump(),
@@ -59,7 +59,7 @@ async def register(
 async def login_form(templates: Templates, request: Request):
     return templates.TemplateResponse(
         request=request,
-        name="user/login.jinja",
+        name="auth/login.jinja",
         context=BaseContext().model_dump(),
     )
 
