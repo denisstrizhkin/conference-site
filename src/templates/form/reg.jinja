@@ -15,7 +15,7 @@
                         <input type="login"
                                class="form-control"
                                name="email"
-                               value="{{ user.email|default("") }}"
+                               value="{{ user.email|default('', true) }}"
                                required>
                     </label>
                 </div>
