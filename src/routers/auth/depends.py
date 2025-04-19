@@ -27,7 +27,9 @@ class PassHasher:
 
 
 def create_access_token(id: int) -> tuple[str, int]:
-    expires = datetime.utcnow() + timedelta(minutes=settings.jwt_expire_minutes)
+    expires = datetime.utcnow() + timedelta(
+        minutes=settings.jwt_expire_minutes
+    )
     token = Token(id=id, expires=expires)
     to_encode = token.model_dump(mode="json")
     encoded_jwt = jwt.encode(

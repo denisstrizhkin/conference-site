@@ -30,7 +30,7 @@ async def register_form(templates: Templates, request: Request):
     )
 
 
-@router.post("/register", response_class=HTMLResponse | RedirectResponse)
+@router.post("/register", response_class=HTMLResponse)
 async def register(
     request: Request,
     form: Annotated[RegisterForm, Form()],
@@ -64,7 +64,7 @@ async def login_form(templates: Templates, request: Request):
     )
 
 
-@router.post("/login", response_class=HTMLResponse | RedirectResponse)
+@router.post("/login", response_class=HTMLResponse)
 async def login(
     request: Request,
     form: Annotated[LoginForm, Form()],
