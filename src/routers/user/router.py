@@ -43,7 +43,9 @@ async def get_account(
     return templates.TemplateResponse(
         request=request,
         name="form/reg.jinja",
-        context=UserFormContext(user=user, report_file=file).model_dump(),
+        context=UserFormContext(
+            current_user=current_user, user=user, report_file=file
+        ).model_dump(),
     )
 
 
@@ -111,7 +113,9 @@ async def post_account(
     return templates.TemplateResponse(
         request=request,
         name="form/reg.jinja",
-        context=UserFormContext(user=user, report_file=file).model_dump(),
+        context=UserFormContext(
+            current_user=current_user, user=user, report_file=file
+        ).model_dump(),
     )
 
 
@@ -129,5 +133,7 @@ async def get_users(
     return templates.TemplateResponse(
         request=request,
         name="user/list.jinja",
-        context=UsersContext(user=current_user, users=users).model_dump(),
+        context=UsersContext(
+            current_user=current_user, users=users
+        ).model_dump(),
     )

@@ -16,7 +16,7 @@
                 {% for user in users %}
                     <tr>
                         <th scope="raw">
-                            <a href="/user/{{ user.email }}">{{ user.email }}</a>
+                            <a href="/user/{{ user.id }}">{{ user.email }}</a>
                         </th>
                         <td>{{ user.surname|default('---', true) }}</td>
                         <td>{{ user.name|default('---', true) }}</td>

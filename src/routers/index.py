@@ -15,7 +15,7 @@ async def index(
     return templates.TemplateResponse(
         request=request,
         name="index.jinja",
-        context=UserContext(user=current_user).model_dump(),
+        context=UserContext(current_user=current_user).model_dump(),
     )
 
 
@@ -26,7 +26,7 @@ async def about(
     return templates.TemplateResponse(
         request=request,
         name="about.jinja",
-        context=UserContext(user=current_user).model_dump(),
+        context=UserContext(current_user=current_user).model_dump(),
     )
 
 
@@ -37,7 +37,7 @@ async def participants(
     return templates.TemplateResponse(
         request=request,
         name="participants.jinja",
-        context=UserContext(user=current_user).model_dump(),
+        context=UserContext(current_user=current_user).model_dump(),
     )
 
 
@@ -48,5 +48,5 @@ async def gallery(
     return templates.TemplateResponse(
         request=request,
         name="gallery.jinja",
-        context=UserContext(user=current_user).model_dump(),
+        context=UserContext(current_user=current_user).model_dump(),
     )

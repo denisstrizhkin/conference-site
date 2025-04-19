@@ -36,7 +36,7 @@ class UserForm(BaseModel):
 
 
 class UserContext(BaseContext):
-    user: Optional[User] = None
+    current_user: Optional[User] = None
 
 
 class UsersContext(UserContext):
@@ -44,6 +44,7 @@ class UsersContext(UserContext):
 
 
 class UserFormContext(BaseContext):
+    current_user: User
     user: User
     report_file: Optional[File] = None
     roles: list[tuple[UserRole, str]] = []
