@@ -1,10 +1,47 @@
 {% extends "base.jinja" %}
 {% block main %}
-    <ul>
-        {% for user in users %}
-            <li>
-                <a href="/user/{{ user.id }}">{{ user.email }}</a>
-            </li>
-        {% endfor %}
-    </ul>
+    <div class="table-responsive-lg mw-100">
+        <table class="table table-hover align-middle text-center">
+            <thead>
+                <tr>
+                    <th scope="col">Логин</th>
+                    <th scope="col">Фамилия</th>
+                    <th scope="col">Имя</th>
+                    <th scope="col">Формат</th>
+                    <th scope="col" class="rep-name-col">Название доклада</th>
+                    <th scope="col">Файл с тезисом</th>
+                </tr>
+            </thead>
+            <tbody class="table-group-divider">
+                {% for user in users %}
+                    <tr>
+                        <th scope="raw">
+                            <a href="/user/{{ user.email }}">{{ user.email }}</a>
+                        </th>
+                        <td>{{ user.surname|default('---', true) }}</td>
+                        <td>{{ user.name|default('---', true) }}</td>
+                        <td>
+                            {% if user.role == "participant" %}
+                                Участник
+                            {% elif user.role == "viewer" %}
+                                Зритель
+                            {% elif user.role == "admin" %}
+                                Админ
+                            {% elif user.role == "basic" %}
+                                Не участвует
+                            {% endif %}
+                        </td>
+                        <td class="text-wrap text-break rep-name-col">{{ user.form.report_name|default('---', true) }}</td>
+                        <td>
+                            {% if user.form.file_id %}
+                                <a href="/files/{{ user.form.file_id }}">Скачать</a>
+                            {% else %}
+                                <p class="fs-6">---</p>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 {% endblock %}

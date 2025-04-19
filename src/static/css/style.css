@@ -31,3 +31,8 @@
   overflow: hidden;
   height: 100%;
 }
+
+.rep-name-col {
+  max-width: 400px;
+  overflow: hidden;
+}
