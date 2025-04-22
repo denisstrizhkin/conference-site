@@ -114,7 +114,10 @@ async def post_account(
         request=request,
         name="form/reg.jinja",
         context=UserFormContext(
-            current_user=current_user, user=user, report_file=file
+            current_user=current_user,
+            user=user,
+            report_file=file,
+            message="Анкета сохранена.",
         ).model_dump(),
     )
 
