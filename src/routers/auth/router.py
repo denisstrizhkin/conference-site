@@ -7,7 +7,7 @@ from sqlalchemy.exc import IntegrityError
 from src.routers.user.repo import UserRepository
 from src.schemas import BaseContext
 from src.db import Session
-from src.depends import Templates
+from src.depends import render_template
 
 from .schemas import (
     RegisterForm,
@@ -22,11 +22,11 @@ router = APIRouter(prefix="/auth")
 
 
 @router.get("/register", response_class=HTMLResponse)
-async def register_form(templates: Templates, request: Request):
-    return templates.TemplateResponse(
-        request=request,
-        name="auth/register.jinja",
-        context=BaseContext().model_dump(),
+async def register_form(request: Request):
+    return render_template(
+        request,
+        "auth/register.jinja",
+        BaseContext(),
     )
 
 
@@ -35,19 +35,16 @@ async def register(
     request: Request,
     form: Annotated[RegisterForm, Form()],
     session: Session,
-    templates: Templates,
 ):
     try:
         await UserRepository(session).create(
             form.email, PassHasher.get_password_hash(form.password)
         )
     except IntegrityError:
-        return templates.TemplateResponse(
-            request=request,
-            name="auth/register.jinja",
-            context=BaseContext(
-                error="Такой пользователь уже сущевствует."
-            ).model_dump(),
+        return render_template(
+            request,
+            "auth/register.jinja",
+            BaseContext(error="Такой пользователь уже сущевствует."),
         )
 
     return RedirectResponse(
@@ -56,11 +53,11 @@ async def register(
 
 
 @router.get("/login", response_class=HTMLResponse)
-async def login_form(templates: Templates, request: Request):
-    return templates.TemplateResponse(
-        request=request,
-        name="auth/login.jinja",
-        context=BaseContext().model_dump(),
+async def login_form(request: Request):
+    return render_template(
+        request,
+        "auth/login.jinja",
+        BaseContext(),
     )
 
 
@@ -69,13 +66,12 @@ async def login(
     request: Request,
     form: Annotated[LoginForm, Form()],
     session: Session,
-    templates: Templates,
 ):
     def error_response(error: str) -> HTMLResponse:
-        return templates.TemplateResponse(
-            request=request,
-            name="auth/login.jinja",
-            context=BaseContext(error=error).model_dump(),
+        return render_template(
+            request,
+            "auth/login.jinja",
+            BaseContext(error=error),
         )
 
     user = await UserRepository(session).get_one_or_none(email=form.email)

@@ -4,7 +4,7 @@ from fastapi import APIRouter, status, Request, HTTPException, Form
 from fastapi.responses import HTMLResponse
 
 from src.db import Session
-from src.depends import Templates
+from src.depends import render_template
 from src.routers.auth.depends import CurrentUser
 from src.routers.files.repo import FileRepository
 from src.routers.files.models import File
@@ -23,7 +23,6 @@ router = APIRouter(prefix="/user")
 @router.get("/{user_id}", response_class=HTMLResponse)
 async def get_account(
     user_id: int,
-    templates: Templates,
     request: Request,
     session: Session,
     current_user: CurrentUser,
@@ -40,19 +39,18 @@ async def get_account(
     if user.form:
         file = await FileRepository(session).get_one(user.form.file_id)
 
-    return templates.TemplateResponse(
-        request=request,
-        name="form/reg.jinja",
-        context=UserFormContext(
+    return render_template(
+        request,
+        "form/reg.jinja",
+        UserFormContext(
             current_user=current_user, user=user, report_file=file
-        ).model_dump(),
+        ),
     )
 
 
 @router.post("/{user_id}", response_class=HTMLResponse)
 async def post_account(
     user_id: int,
-    templates: Templates,
     request: Request,
     session: Session,
     current_user: CurrentUser,
@@ -110,21 +108,20 @@ async def post_account(
     )
     user = await user_repo.update(user)
 
-    return templates.TemplateResponse(
-        request=request,
-        name="form/reg.jinja",
+    return render_template(
+        request,
+        "form/reg.jinja",
         context=UserFormContext(
             current_user=current_user,
             user=user,
             report_file=file,
             message="Анкета сохранена.",
-        ).model_dump(),
+        ),
     )
 
 
 @router.get("/", response_class=HTMLResponse)
 async def get_users(
-    templates: Templates,
     request: Request,
     session: Session,
     current_user: CurrentUser,
@@ -133,10 +130,8 @@ async def get_users(
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
 
     users = await UserRepository(session).get()
-    return templates.TemplateResponse(
-        request=request,
-        name="user/list.jinja",
-        context=UsersContext(
-            current_user=current_user, users=users
-        ).model_dump(),
+    return render_template(
+        request,
+        "user/list.jinja",
+        context=UsersContext(current_user=current_user, users=users),
     )

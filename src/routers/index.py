@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse
 
-from src.depends import Templates
+from src.depends import render_template
 from src.routers.user.schemas import UserContext
 from src.routers.auth.depends import CurrentUserOrNone
 
@@ -9,55 +9,45 @@ router: APIRouter = APIRouter()
 
 
 @router.get("/", response_class=HTMLResponse)
-async def index(
-    templates: Templates, request: Request, current_user: CurrentUserOrNone
-):
-    return templates.TemplateResponse(
-        request=request,
-        name="index.jinja",
-        context=UserContext(current_user=current_user).model_dump(),
+async def index(request: Request, current_user: CurrentUserOrNone):
+    return render_template(
+        request,
+        "index.jinja",
+        UserContext(current_user=current_user),
     )
 
 
 @router.get("/about", response_class=HTMLResponse)
-async def about(
-    templates: Templates, request: Request, current_user: CurrentUserOrNone
-):
-    return templates.TemplateResponse(
-        request=request,
-        name="about.jinja",
-        context=UserContext(current_user=current_user).model_dump(),
+async def about(request: Request, current_user: CurrentUserOrNone):
+    return render_template(
+        request,
+        "about.jinja",
+        UserContext(current_user=current_user),
     )
 
 
 @router.get("/participants", response_class=HTMLResponse)
-async def participants(
-    templates: Templates, request: Request, current_user: CurrentUserOrNone
-):
-    return templates.TemplateResponse(
-        request=request,
-        name="participants.jinja",
-        context=UserContext(current_user=current_user).model_dump(),
+async def participants(request: Request, current_user: CurrentUserOrNone):
+    return render_template(
+        request,
+        "participants.jinja",
+        UserContext(current_user=current_user),
     )
 
 
 @router.get("/gallery", response_class=HTMLResponse)
-async def gallery(
-    templates: Templates, request: Request, current_user: CurrentUserOrNone
-):
-    return templates.TemplateResponse(
-        request=request,
-        name="gallery.jinja",
-        context=UserContext(current_user=current_user).model_dump(),
+async def gallery(request: Request, current_user: CurrentUserOrNone):
+    return render_template(
+        request,
+        "gallery.jinja",
+        UserContext(current_user=current_user),
     )
 
 
 @router.get("/vote", response_class=HTMLResponse)
-async def vote(
-    templates: Templates, request: Request, current_user: CurrentUserOrNone
-):
-    return templates.TemplateResponse(
-        request=request,
-        name="vote.jinja",
-        context=UserContext(current_user=current_user).model_dump(),
+async def vote(request: Request, current_user: CurrentUserOrNone):
+    return render_template(
+        request,
+        "vote.jinja",
+        UserContext(current_user=current_user),
     )

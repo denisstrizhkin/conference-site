@@ -2,7 +2,6 @@ import urllib
 
 from fastapi import APIRouter, Request, Response, HTTPException, status
 
-from src.depends import Templates
 from src.db import Session
 from src.routers.user.models import UserRole
 from src.routers.auth.depends import CurrentUser
@@ -16,7 +15,6 @@ router = APIRouter(prefix="/files")
 async def download_file(
     file_id: int,
     request: Request,
-    templates: Templates,
     current_user: CurrentUser,
     session: Session,
 ):
