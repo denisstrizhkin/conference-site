@@ -50,3 +50,14 @@ async def gallery(
         name="gallery.jinja",
         context=UserContext(current_user=current_user).model_dump(),
     )
+
+
+@router.get("/vote", response_class=HTMLResponse)
+async def vote(
+    templates: Templates, request: Request, current_user: CurrentUserOrNone
+):
+    return templates.TemplateResponse(
+        request=request,
+        name="vote.jinja",
+        context=UserContext(current_user=current_user).model_dump(),
+    )
