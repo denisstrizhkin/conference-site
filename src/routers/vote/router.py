@@ -6,7 +6,8 @@ from fastapi.responses import HTMLResponse
 from src.logger import logger
 from src.db import Session
 from src.depends import render_template
-from src.routers.auth.depends import CurrentUserOrNone
+from src.routers.auth.depends import CurrentUserOrNone, CurrentUser
+from src.routers.user.models import UserRole
 
 from .schemas import VoteFormContext, VoteForm
 
@@ -18,8 +19,8 @@ vote_router = APIRouter(prefix="/vote")
 async def get_vote(request: Request, current_user: CurrentUserOrNone):
     return render_template(
         request,
-        "vote.jinja",
-        VoteFormContext(),
+        "vote/vote.jinja",
+        VoteFormContext(current_user=current_user),
     )
 
 
@@ -32,6 +33,18 @@ async def post_vote(
 ):
     return render_template(
         request,
-        "vote.jinja",
-        VoteFormContext(),
+        "vote/vote.jinja",
+        VoteFormContext(current_user=current_user),
     )
+
+
+@vote_router.get("/admin", response_class=HTMLResponse)
+async def get_admin(request: Request, current_user: CurrentUser):
+    if current_user.role != UserRole.admin:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
+
+
+@vote_router.post("/admin", response_class=HTMLResponse)
+async def post_admin(request: Request, current_user: CurrentUser):
+    if current_user.role != UserRole.admin:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)

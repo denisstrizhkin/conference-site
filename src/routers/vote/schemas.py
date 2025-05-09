@@ -1,5 +1,7 @@
 from pydantic import BaseModel
 
+from fastapi import UploadFile
+
 from src.routers.user.schemas import UserContext
 
 from .models import Reports
@@ -42,3 +44,7 @@ class VoteFormContext(UserContext):
 class VoteForm(BaseModel):
     code: str
     report: Reports
+
+
+class CodesForm(BaseModel):
+    file: UploadFile
