@@ -9,7 +9,9 @@ from sqlmodel import SQLModel
 from alembic import context
 
 from src.settings import settings
-from src import User, File
+from src.routers.user.models import User
+from src.routers.files.models import File
+from src.routers.vote.models import Vote
 
 print(settings.model_dump())
 
