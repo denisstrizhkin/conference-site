@@ -6,7 +6,8 @@ from fastapi.responses import HTMLResponse
 from src.db import Session
 from src.depends import render_template
 from src.routers.auth.depends import CurrentUserOrNone
-from src.routers.user.schemas import UserContext
+
+from .schemas import VoteFormContext
 
 
 vote_router = APIRouter(prefix="/vote")
@@ -17,5 +18,5 @@ async def vote(request: Request, current_user: CurrentUserOrNone):
     return render_template(
         request,
         "vote.jinja",
-        UserContext(current_user=current_user),
+        VoteFormContext(),
     )
