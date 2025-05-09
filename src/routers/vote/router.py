@@ -19,7 +19,7 @@ async def get_vote(
     templates: TemplateRenderer, current_user: CurrentUserOrNone
 ):
     return templates.render(
-        "vote/vote.jinja",
+        "vote/index.jinja",
         VoteFormContext(current_user=current_user),
     )
 
@@ -32,7 +32,7 @@ async def post_vote(
     form: Annotated[VoteForm, Form()],
 ):
     return templates.render(
-        "vote/vote.jinja",
+        "vote/index.jinja",
         VoteFormContext(current_user=current_user),
     )
 
