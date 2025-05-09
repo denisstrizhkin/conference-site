@@ -6,68 +6,30 @@
         <div class="col-md-8">
             {% if error %}<div class="alert alert-danger" role="alert">{{ error }}</div>{% endif %}
             {% if message %}<div class="alert alert-success" role="alert">{{ message }}</div>{% endif %}
-            <form>
+            <form action="/vote" method="post">
                 <div id="reportFormParent">
                     <div id="reportForm">
                         <div class="mb-3">
                             <label class="form-label">
                                 <strong>Введите выданный id участника</strong>
-                                <input type="login" class="form-control" name="part_id" value="" required>
+                                <input type="login" class="form-control" name="code" value="" required>
                             </label>
                         </div>
                         <p class="fs-6 mb-3 mt-4">
                             <strong>Выберите лучший доклад:</strong>
                         </p>
-                        <div class="form-check border border-2 rounded">
-                            <label class="form-check-label p-2">
-                                <input class="form-check-input"
-                                       type="radio"
-                                       name="best_report"
-                                       value="1"
-                                       strong>
-                                Шляга	Елена</strong> Торцевой полупроводниковый лазер на основе оптических таммовских состояний
-                            </label>
-                        </div>
-                        <div class="form-check border border-2 rounded">
-                            <label class="form-check-label p-2">
-                                <input class="form-check-input"
-                                       type="radio"
-                                       name="best_report"
-                                       value="2"
-                                       strong>
-                                Плешаков	Павел</strong> Использование микрофлюидики для формирования альгинатных микрогелей с клетками для использования в качестве моделей тканей и органов.
-                            </label>
-                        </div>
-                        <div class="form-check border border-2 rounded">
-                            <label class="form-check-label p-2">
-                                <input class="form-check-input"
-                                       type="radio"
-                                       name="best_report"
-                                       value="3"
-                                       strong>
-                                Курилова	Анастасия</strong> Синтез и дизайн гибких металлоорганических каркасов для оптического определения органических соединений.
-                            </label>
-                        </div>
-                        <div class="form-check border border-2 rounded">
-                            <label class="form-check-label p-2">
-                                <input class="form-check-input"
-                                       type="radio"
-                                       name="best_report"
-                                       value="4"
-                                       strong>
-                                Фофонов	Михаил</strong> О топологической запутанности белков.
-                            </label>
-                        </div>
-                        <div class="form-check border border-2 rounded">
-                            <label class="form-check-label p-2">
-                                <input class="form-check-input"
-                                       type="radio"
-                                       name="best_report"
-                                       value="5"
-                                       strong>
-                                Третьяков	Иван</strong> О тропической математике и применении к алгоритмам.
-                            </label>
-                        </div>
+                        {% for report in reports %}
+                            <div class="form-check border border-2 rounded">
+                                <label class="form-check-label p-2">
+                                    <input class="form-check-input"
+                                           type="radio"
+                                           name="report"
+                                           value="{{ report[0] }}"
+                                           strong>
+                                    {{ report[1] }}
+                                </label>
+                            </div>
+                        {% endfor %}
                     </div>
                 </div>
                 <hr class="my-5">

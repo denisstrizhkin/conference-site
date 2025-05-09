@@ -1,4 +1,7 @@
+from pydantic import BaseModel
+
 from src.routers.user.schemas import UserContext
+
 from .models import Reports
 
 
@@ -34,3 +37,8 @@ class VoteFormContext(UserContext):
             "применении к алгоритмам»",
         ),
     ]
+
+
+class VoteForm(BaseModel):
+    code: str
+    report: Reports
