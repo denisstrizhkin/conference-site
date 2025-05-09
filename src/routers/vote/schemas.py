@@ -46,5 +46,8 @@ class VoteForm(BaseModel):
     report: Reports
 
 
+class VoteAdminContext(UserContext): ...
+
+
 class CodesForm(BaseModel):
-    file: UploadFile
+    codes_file: str | UploadFile

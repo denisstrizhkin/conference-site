@@ -35,7 +35,9 @@ class VoteRepository:
             self._dto.model_validate(user) for user in result.scalars().all()
         ]
 
-    async def create(self, code: str, report: Optional[Reports]) -> Vote:
+    async def create(
+        self, code: str, report: Optional[Reports] = None
+    ) -> Vote:
         user = self._dto(code=code, report=report)
         self._session.add(user)
         await self._session.flush()

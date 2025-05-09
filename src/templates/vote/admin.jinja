@@ -1,47 +1,23 @@
 {% extends "base.jinja" %}
 {% block main %}
-    <div class="table-responsive-lg mw-100">
-        <table class="table table-hover align-middle text-center">
-            <thead>
-                <tr>
-                    <th scope="col">Логин</th>
-                    <th scope="col">Фамилия</th>
-                    <th scope="col">Имя</th>
-                    <th scope="col">Формат</th>
-                    <th scope="col" class="rep-name-col">Название доклада</th>
-                    <th scope="col">Файл с тезисом</th>
-                </tr>
-            </thead>
-            <tbody class="table-group-divider">
-                {% for user in users %}
-                    <tr>
-                        <th scope="raw">
-                            <a href="/user/{{ user.id }}">{{ user.email }}</a>
-                        </th>
-                        <td>{{ user.surname|default('---', true) }}</td>
-                        <td>{{ user.name|default('---', true) }}</td>
-                        <td>
-                            {% if user.role == "participant" %}
-                                Участник
-                            {% elif user.role == "viewer" %}
-                                Зритель
-                            {% elif user.role == "admin" %}
-                                Админ
-                            {% elif user.role == "basic" %}
-                                Не участвует
-                            {% endif %}
-                        </td>
-                        <td class="text-wrap text-break rep-name-col">{{ user.form.report_name|default('---', true) }}</td>
-                        <td>
-                            {% if user.form.file_id %}
-                                <a href="/files/{{ user.form.file_id }}">Скачать</a>
-                            {% else %}
-                                <p class="fs-6">---</p>
-                            {% endif %}
-                        </td>
-                    </tr>
+    {% if message %}<div class="alert alert-success" role="alert">{{ message }}</div>{% endif %}
+    <ul>
+        {% for item in reports %}
+            <li>
+                {{ item }}
+                <li>
                 {% endfor %}
-            </tbody>
-        </table>
-    </div>
-{% endblock %}
+            </ul>
+            <form action="/vote/admin" method="post" enctype="multipart/form-data">
+                <div class="mb-3">
+                    <label class="form-label">
+                        <input class="form-control"
+                               type="file"
+                               name="codes_file"
+                               accept=".txt, text/plain">
+                        Файл со списком Id для голосования
+                    </label>
+                </div>
+                <button type="submit" class="btn btn-primary">Сохранить</button>
+            </form>
+        {% endblock %}

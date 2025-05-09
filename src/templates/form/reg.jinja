@@ -98,7 +98,10 @@
                         {% endif %}
                     {% endfor %}
                 </select>
-                {% if user.role == "admin" %}<a class="btn btn-primary" href="/user/">Список участников</a>{% endif %}
+                {% if user.role == "admin" %}
+                    <a class="btn btn-primary" href="/user/">Список участников</a>
+                    <a class="btn btn-primary" href="/vote/admin">Голосование</a>
+                {% endif %}
                 <div id="reportFormParent">
                     <div id="reportForm">
                         <div class="col-12">

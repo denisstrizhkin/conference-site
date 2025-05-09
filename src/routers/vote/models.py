@@ -1,7 +1,7 @@
 from typing import Optional, Annotated
 
 from enum import StrEnum, auto
-from sqlmodel import SQLModel, Field, Column, Enum, String
+from sqlmodel import SQLModel, Field, Column, Enum, String, UniqueConstraint
 
 
 class Reports(StrEnum):
@@ -13,6 +13,8 @@ class Reports(StrEnum):
 
 
 class Vote(SQLModel, table=True):
+    __table_args__ = (UniqueConstraint("code", name="uq_vote_code"),)
+
     id: Annotated[Optional[int], Field(default=None, primary_key=True)]
     code: Annotated[
         str,

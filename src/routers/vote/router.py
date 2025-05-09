@@ -1,15 +1,16 @@
 from typing import Annotated
 
-from fastapi import APIRouter, status, Request, HTTPException, Form
+from fastapi import APIRouter, status, HTTPException, Form
 from fastapi.responses import HTMLResponse
 
+from src.logger import logger
 from src.db import Session
 from src.depends import TemplateRenderer
 from src.routers.auth.depends import CurrentUserOrNone, CurrentUser
 from src.routers.user.models import UserRole
 
-from .schemas import VoteFormContext, VoteForm
-
+from .schemas import VoteFormContext, VoteForm, VoteAdminContext, CodesForm
+from .repo import VoteRepository
 
 vote_router = APIRouter(prefix="/vote")
 
@@ -38,12 +39,47 @@ async def post_vote(
 
 
 @vote_router.get("/admin", response_class=HTMLResponse)
-async def get_admin(request: Request, current_user: CurrentUser):
+async def get_admin(
+    templates: TemplateRenderer,
+    current_user: CurrentUser,
+    session: Session,
+):
     if current_user.role != UserRole.admin:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
+
+    votes = await VoteRepository(session).get()
+    logger.info(votes)
+
+    return templates.render(
+        "vote/admin.jinja", VoteAdminContext(current_user=current_user)
+    )
 
 
 @vote_router.post("/admin", response_class=HTMLResponse)
-async def post_admin(request: Request, current_user: CurrentUser):
+async def post_admin(
+    templates: TemplateRenderer,
+    current_user: CurrentUser,
+    session: Session,
+    codes_form: Annotated[CodesForm, Form()],
+):
     if current_user.role != UserRole.admin:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
+
+    data = await codes_form.codes_file.read()
+    codes_s = data.decode("utf8").strip()
+    codes = [code.strip() for code in codes_s.split()]
+
+    vote_repo = VoteRepository(session)
+    for code in codes:
+        await vote_repo.create(code)
+
+    votes = await vote_repo.get()
+    logger.info(votes)
+
+    return templates.render(
+        "vote/admin.jinja",
+        VoteAdminContext(
+            current_user=current_user,
+            message="Коды голосования перезаданы.",
+        ),
+    )
