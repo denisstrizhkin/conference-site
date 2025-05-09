@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Annotated
+from typing import Annotated, Optional
 
 from fastapi import Depends, Request
 from fastapi.templating import Jinja2Templates
@@ -14,10 +14,21 @@ def get_templates() -> Jinja2Templates:
 Templates = Annotated[Jinja2Templates, Depends(get_templates)]
 
 
-def render_template(request: Request, name: str, context: BaseContext):
-    templates = get_templates()
-    return templates.TemplateResponse(
-        request=request,
-        name=name,
-        context=context.model_dump(),
-    )
+class Renderer:
+    def __init__(self, request: Request, templates: Jinja2Templates):
+        self._request = request
+        self._templates = templates
+
+    def render(self, name: str, context: Optional[BaseContext] = None):
+        if context is None:
+            context = BaseContext()
+        return self._templates.TemplateResponse(
+            request=self._request, name=name, context=context.model_dump()
+        )
+
+
+def build_renderer(request: Request, templates: Templates) -> Renderer:
+    return Renderer(request, templates)
+
+
+TemplateRenderer = Annotated[Renderer, Depends(build_renderer)]

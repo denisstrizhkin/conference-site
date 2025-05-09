@@ -1,11 +1,10 @@
-from typing import Annotated, Optional
+from typing import Annotated
 
 from fastapi import APIRouter, status, Request, HTTPException, Form
 from fastapi.responses import HTMLResponse
 
-from src.logger import logger
 from src.db import Session
-from src.depends import render_template
+from src.depends import TemplateRenderer
 from src.routers.auth.depends import CurrentUserOrNone, CurrentUser
 from src.routers.user.models import UserRole
 
@@ -16,9 +15,10 @@ vote_router = APIRouter(prefix="/vote")
 
 
 @vote_router.get("/", response_class=HTMLResponse)
-async def get_vote(request: Request, current_user: CurrentUserOrNone):
-    return render_template(
-        request,
+async def get_vote(
+    templates: TemplateRenderer, current_user: CurrentUserOrNone
+):
+    return templates.render(
         "vote/vote.jinja",
         VoteFormContext(current_user=current_user),
     )
@@ -26,13 +26,12 @@ async def get_vote(request: Request, current_user: CurrentUserOrNone):
 
 @vote_router.post("/", response_class=HTMLResponse)
 async def post_vote(
-    request: Request,
+    templates: TemplateRenderer,
     current_user: CurrentUserOrNone,
     session: Session,
     form: Annotated[VoteForm, Form()],
 ):
-    return render_template(
-        request,
+    return templates.render(
         "vote/vote.jinja",
         VoteFormContext(current_user=current_user),
     )

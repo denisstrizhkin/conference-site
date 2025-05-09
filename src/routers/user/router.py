@@ -1,10 +1,10 @@
 from typing import Annotated, Optional
 
-from fastapi import APIRouter, status, Request, HTTPException, Form
+from fastapi import APIRouter, status, HTTPException, Form
 from fastapi.responses import HTMLResponse
 
 from src.db import Session
-from src.depends import render_template
+from src.depends import TemplateRenderer
 from src.routers.auth.depends import CurrentUser
 from src.routers.files.repo import FileRepository
 from src.routers.files.models import File
@@ -23,7 +23,7 @@ user_router = APIRouter(prefix="/user")
 @user_router.get("/{user_id}", response_class=HTMLResponse)
 async def get_account(
     user_id: int,
-    request: Request,
+    templates: TemplateRenderer,
     session: Session,
     current_user: CurrentUser,
 ):
@@ -39,8 +39,7 @@ async def get_account(
     if user.form:
         file = await FileRepository(session).get_one(user.form.file_id)
 
-    return render_template(
-        request,
+    return templates.render(
         "form/reg.jinja",
         UserFormContext(
             current_user=current_user, user=user, report_file=file
@@ -51,7 +50,7 @@ async def get_account(
 @user_router.post("/{user_id}", response_class=HTMLResponse)
 async def post_account(
     user_id: int,
-    request: Request,
+    templates: TemplateRenderer,
     session: Session,
     current_user: CurrentUser,
     form: Annotated[UserForm, Form()],
@@ -108,8 +107,7 @@ async def post_account(
     )
     user = await user_repo.update(user)
 
-    return render_template(
-        request,
+    return templates.render(
         "form/reg.jinja",
         context=UserFormContext(
             current_user=current_user,
@@ -122,7 +120,7 @@ async def post_account(
 
 @user_router.get("/", response_class=HTMLResponse)
 async def get_users(
-    request: Request,
+    templates: TemplateRenderer,
     session: Session,
     current_user: CurrentUser,
 ):
@@ -130,8 +128,7 @@ async def get_users(
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
 
     users = await UserRepository(session).get()
-    return render_template(
-        request,
+    return templates.render(
         "user/list.jinja",
         context=UsersContext(current_user=current_user, users=users),
     )
