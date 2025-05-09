@@ -8,10 +8,10 @@ from src.routers.auth.depends import CurrentUser
 
 from .repo import FileRepository
 
-router = APIRouter(prefix="/files")
+file_router = APIRouter(prefix="/files")
 
 
-@router.get("/{file_id}")
+@file_router.get("/{file_id}")
 async def download_file(
     file_id: int,
     request: Request,

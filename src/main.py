@@ -8,10 +8,12 @@ from fastapi.staticfiles import StaticFiles
 from src.settings import settings
 from src.schemas import ErrorContext
 from src.depends import get_templates
-from src.routers import IndexRouter
-from src.routers.user import UserRouter
-from src.routers.files import FileRouter
-from src.routers.auth import AuthRouter
+
+from src.routers.index import index_router
+from src.routers.user.router import user_router
+from src.routers.files.router import file_router
+from src.routers.auth.router import auth_router
+from src.routers.vote.router import vote_router
 
 openapi_url: Optional[str] = None
 if settings.show_docs:
@@ -23,10 +25,11 @@ app.mount(
     StaticFiles(directory=Path(__file__).parent / "static"),
     name="static",
 )
-app.include_router(IndexRouter)
-app.include_router(AuthRouter)
-app.include_router(UserRouter)
-app.include_router(FileRouter)
+app.include_router(index_router)
+app.include_router(auth_router)
+app.include_router(user_router)
+app.include_router(file_router)
+app.include_router(vote_router)
 
 
 @app.exception_handler(status.HTTP_404_NOT_FOUND)

@@ -17,10 +17,10 @@ from .schemas import (
 from .repo import UserRepository
 from .models import ReportForm, UserRole
 
-router = APIRouter(prefix="/user")
+user_router = APIRouter(prefix="/user")
 
 
-@router.get("/{user_id}", response_class=HTMLResponse)
+@user_router.get("/{user_id}", response_class=HTMLResponse)
 async def get_account(
     user_id: int,
     request: Request,
@@ -48,7 +48,7 @@ async def get_account(
     )
 
 
-@router.post("/{user_id}", response_class=HTMLResponse)
+@user_router.post("/{user_id}", response_class=HTMLResponse)
 async def post_account(
     user_id: int,
     request: Request,
@@ -120,7 +120,7 @@ async def post_account(
     )
 
 
-@router.get("/", response_class=HTMLResponse)
+@user_router.get("/", response_class=HTMLResponse)
 async def get_users(
     request: Request,
     session: Session,

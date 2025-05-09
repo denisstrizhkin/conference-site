@@ -18,10 +18,10 @@ from .depends import (
     PassHasher,
 )
 
-router = APIRouter(prefix="/auth")
+auth_router = APIRouter(prefix="/auth")
 
 
-@router.get("/register", response_class=HTMLResponse)
+@auth_router.get("/register", response_class=HTMLResponse)
 async def register_form(request: Request):
     return render_template(
         request,
@@ -30,7 +30,7 @@ async def register_form(request: Request):
     )
 
 
-@router.post("/register", response_class=HTMLResponse)
+@auth_router.post("/register", response_class=HTMLResponse)
 async def register(
     request: Request,
     form: Annotated[RegisterForm, Form()],
@@ -52,7 +52,7 @@ async def register(
     )
 
 
-@router.get("/login", response_class=HTMLResponse)
+@auth_router.get("/login", response_class=HTMLResponse)
 async def login_form(request: Request):
     return render_template(
         request,
@@ -61,7 +61,7 @@ async def login_form(request: Request):
     )
 
 
-@router.post("/login", response_class=HTMLResponse)
+@auth_router.post("/login", response_class=HTMLResponse)
 async def login(
     request: Request,
     form: Annotated[LoginForm, Form()],
@@ -98,7 +98,7 @@ async def login(
     return response
 
 
-@router.post("/logout", response_class=RedirectResponse)
+@auth_router.post("/logout", response_class=RedirectResponse)
 async def logout():
     response = RedirectResponse(url="/", status_code=status.HTTP_303_SEE_OTHER)
     # Remove the access token cookie
