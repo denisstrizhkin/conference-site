@@ -44,11 +44,13 @@ class VoteRepository:
         await self._session.refresh(user)
         return self._dto.model_validate(user)
 
-    async def update(self, vote: Vote) -> Vote:
+    async def update(self, code: str, report: Reports) -> Vote:
         stmt = (
             update(self._dto)
-            .where(vote.id == self._dto.id)
-            .values(**vote.model_dump())
+            .where(code == self._dto.code)
+            .values(
+                Vote(code=code, report=report).model_dump(exclude_none=True)
+            )
         )
         await self._session.execute(stmt)
-        return await self.get_one(id=vote.id)
+        return await self.get_one(code)

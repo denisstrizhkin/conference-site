@@ -2,6 +2,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, status, HTTPException, Form
 from fastapi.responses import HTMLResponse
+from sqlalchemy.exc import NoResultFound
 
 from src.logger import logger
 from src.db import Session
@@ -32,9 +33,25 @@ async def post_vote(
     session: Session,
     form: Annotated[VoteForm, Form()],
 ):
+    try:
+        vote = await VoteRepository(session).update(form.code, form.report)
+    except NoResultFound:
+        return templates.render(
+            "vote/index.jinja",
+            VoteFormContext(
+                current_user=current_user,
+                selected=form.report,
+                error="Такого кода несуществует.",
+            ),
+        )
+
     return templates.render(
         "vote/index.jinja",
-        VoteFormContext(current_user=current_user),
+        VoteFormContext(
+            current_user=current_user,
+            selected=vote.report,
+            message="Голос учтен.",
+        ),
     )
 
 

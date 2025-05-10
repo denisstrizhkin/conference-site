@@ -1,5 +1,6 @@
-from pydantic import BaseModel
+from typing import Optional
 
+from pydantic import BaseModel
 from fastapi import UploadFile
 
 from src.routers.user.schemas import UserContext
@@ -8,6 +9,7 @@ from .models import Reports
 
 
 class VoteFormContext(UserContext):
+    selected: Optional[Reports] = None
     reports: list[tuple[Reports, str]] = [
         (
             Reports.a,
