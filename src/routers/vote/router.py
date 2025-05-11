@@ -13,6 +13,11 @@ from src.routers.user.models import UserRole
 from .schemas import VoteFormContext, VoteForm, VoteAdminContext, CodesForm
 from .repo import VoteRepository
 
+import matplotlib.pyplot as plt
+import io
+import base64
+
+
 vote_router = APIRouter(prefix="/vote")
 
 
@@ -67,8 +72,10 @@ async def get_admin(
     votes = await VoteRepository(session).get()
     logger.info(votes)
 
+    img = "data:image/png;base64," + get_pic(votes)
+
     return templates.render(
-        "vote/admin.jinja", VoteAdminContext(current_user=current_user)
+        "vote/admin.jinja", VoteAdminContext(current_user=current_user, image=img)
     )
 
 
@@ -100,3 +107,31 @@ async def post_admin(
             message="Коды голосования перезаданы.",
         ),
     )
+
+
+def get_pic(votes):
+    print(votes)
+    categories = ["A", "B", "C", "D", "E"]
+    vals = [0, 0, 0, 0, 0]
+    for vote in votes:
+        if vote.report is None:
+            continue
+        if vote.report.value == "a":
+            vals[0] += 1
+        elif vote.report.value == "b":
+            vals[1] += 1
+        elif vote.report.value == "c":
+            vals[2] += 1
+        elif vote.report.value == "d":
+            vals[3] += 1
+        elif vote.report.value == "e":
+            vals[4] += 1
+    plt.bar(categories, vals)
+    plt.title("Результаты голосования")
+
+    buf = io.BytesIO()
+    plt.savefig(buf, format="jpg")
+    buf.seek(0)
+    img = base64.b64encode(buf.read()).decode('utf-8')
+    buf.close
+    return img

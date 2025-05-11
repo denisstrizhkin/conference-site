@@ -48,7 +48,8 @@ class VoteForm(BaseModel):
     report: Reports
 
 
-class VoteAdminContext(UserContext): ...
+class VoteAdminContext(UserContext):
+    image: str
 
 
 class CodesForm(BaseModel):
