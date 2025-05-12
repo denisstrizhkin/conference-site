@@ -49,6 +49,8 @@ class VoteForm(BaseModel):
 
 
 class VoteAdminContext(UserContext):
+    all_cnt: int
+    voted_cnt: int
     image: str
 
 

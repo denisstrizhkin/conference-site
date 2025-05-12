@@ -1,4 +1,4 @@
-from typing import Annotated
+from typing import Annotated, Optional
 import io
 import base64
 
@@ -7,11 +7,10 @@ from fastapi.responses import HTMLResponse
 from sqlalchemy.exc import NoResultFound
 import matplotlib.pyplot as plt
 
-from src.logger import logger
 from src.db import Session
 from src.depends import TemplateRenderer
 from src.routers.auth.depends import CurrentUserOrNone, CurrentUser
-from src.routers.user.models import UserRole
+from src.routers.user.models import UserRole, User
 
 from .schemas import VoteFormContext, VoteForm, VoteAdminContext, CodesForm
 from .repo import VoteRepository
@@ -60,6 +59,37 @@ async def post_vote(
     )
 
 
+def get_vote_results_plot(votes: list[Vote]) -> str:
+    lables = list(map(str, Reports))
+    cnt = dict(zip(lables, [0] * len(Reports)))
+    for vote in votes:
+        if vote.report:
+            cnt[vote.report.value] += 1
+    values = [cnt[lable] for lable in lables]
+    plt.bar(lables, values)
+    plt.title("Результаты голосования")
+    with io.BytesIO() as buf:
+        plt.savefig(buf, format="jpeg")
+        img_b64 = base64.b64encode(buf.getvalue()).decode("utf-8")
+    plt.close()
+    return f"data:image/jpeg;base64,{img_b64}"
+
+
+async def get_vote_admin_context(
+    vote_repo: VoteRepository,
+    current_user: User,
+    message: Optional[str] = None,
+) -> VoteAdminContext:
+    votes = await vote_repo.get()
+    return VoteAdminContext(
+        current_user=current_user,
+        message=message,
+        image=get_vote_results_plot(votes),
+        all_cnt=len(votes),
+        voted_cnt=sum([vote.report is not None for vote in votes]),
+    )
+
+
 @vote_router.get("/admin", response_class=HTMLResponse)
 async def get_admin(
     templates: TemplateRenderer,
@@ -69,13 +99,9 @@ async def get_admin(
     if current_user.role != UserRole.admin:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
 
-    votes = await VoteRepository(session).get()
-    image = get_vote_results_plot(votes)
-
-    return templates.render(
-        "vote/admin.jinja",
-        VoteAdminContext(current_user=current_user, image=image),
-    )
+    vote_repo = VoteRepository(session)
+    context = await get_vote_admin_context(vote_repo, current_user)
+    return templates.render("vote/admin.jinja", context)
 
 
 @vote_router.post("/admin", response_class=HTMLResponse)
@@ -93,32 +119,11 @@ async def post_admin(
     codes = [code.strip() for code in codes_s.split()]
 
     vote_repo = VoteRepository(session)
+    await vote_repo.delete_all()
     for code in codes:
         await vote_repo.create(code)
 
-    votes = await vote_repo.get()
-    logger.info(votes)
-
-    return templates.render(
-        "vote/admin.jinja",
-        VoteAdminContext(
-            current_user=current_user,
-            message="Коды голосования перезаданы.",
-        ),
+    context = await get_vote_admin_context(
+        vote_repo, current_user, "Коды голосования перезаданы."
     )
-
-
-def get_vote_results_plot(votes: list[Vote]) -> str:
-    lables = list(map(str, Reports))
-    cnt = dict(zip(lables, [0] * len(Reports)))
-    for vote in votes:
-        if vote.report:
-            cnt[vote.report.value] += 1
-    values = [cnt[lable] for lable in lables]
-    plt.bar(lables, values)
-    plt.title("Результаты голосования")
-    with io.BytesIO() as buf:
-        plt.savefig(buf, format="jpeg")
-        img_b64 = base64.b64encode(buf.getvalue()).decode("utf-8")
-    plt.close()
-    return f"data:image/jpeg;base64,{img_b64}"
+    return templates.render("vote/admin.jinja", context)

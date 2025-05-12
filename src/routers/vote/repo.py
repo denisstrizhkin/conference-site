@@ -2,7 +2,7 @@ from typing import Optional
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import NoResultFound
-from sqlmodel import select, update
+from sqlmodel import select, update, delete
 
 from .models import Vote, Reports
 
@@ -54,3 +54,7 @@ class VoteRepository:
         )
         await self._session.execute(stmt)
         return await self.get_one(code)
+
+    async def delete_all(self):
+        stmt = delete(self._dto)
+        await self._session.execute(stmt)
