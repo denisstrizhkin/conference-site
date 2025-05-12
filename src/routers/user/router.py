@@ -1,7 +1,10 @@
+from io import BytesIO
 from typing import Annotated, Optional
+import urllib
 
 from fastapi import APIRouter, status, HTTPException, Form
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, StreamingResponse
+from openpyxl import Workbook
 
 from src.db import Session
 from src.depends import TemplateRenderer
@@ -131,4 +134,73 @@ async def get_users(
     return templates.render(
         "user/list.jinja",
         context=UsersContext(current_user=current_user, users=users),
+    )
+
+
+# 3. Define the endpoint
+@user_router.get("/excel/")
+async def generate_excel(
+    session: Session,
+    current_user: CurrentUser,
+):
+    if current_user.role != UserRole.admin:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
+
+    users = await UserRepository(session).get()
+
+    # Create a new Excel workbook and select the active sheet
+    workbook = Workbook()
+    sheet = workbook.active
+    sheet.title = "Участники конференции"  # Set a title for the sheet
+
+    headers = [
+        "Логин",
+        "Роль",
+        "Контактная информация",
+        "Имя",
+        "Фамилия",
+        "Отчество",
+        "Организация",
+        "Год обучения",
+        "Название доклада",
+    ]
+
+    # Write headers to the first row
+    sheet.append(headers)
+
+    # Write data rows
+    for user in users:
+        if user.role == UserRole.basic:
+            continue
+
+        # Extract values in the order of headers
+        row_data = [
+            user.email,
+            "Докладчик" if user.role == UserRole.participant else "Зритель",
+            user.contact,
+            user.name,
+            user.surname,
+            user.patronymic,
+            user.organization,
+            user.year,
+            user.form.report_name if user.form else "",
+        ]
+
+        # Append the row data to the sheet
+        sheet.append(row_data)
+
+    buffer = BytesIO()
+    workbook.save(buffer)
+    buffer.seek(0)
+
+    file_name = urllib.parse.quote(
+        "Участники 2025 студенческой конференции.xlsx".encode("utf8")
+    )
+    # Return the buffer content as a StreamingResponse
+    return StreamingResponse(
+        buffer,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={
+            "Content-Disposition": f"attachment; filename*=utf-8''{file_name}",
+        },  # Suggest a filename for download
     )
