@@ -53,4 +53,4 @@ class VoteAdminContext(UserContext):
 
 
 class CodesForm(BaseModel):
-    codes_file: str | UploadFile
+    codes_file: UploadFile

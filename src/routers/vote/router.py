@@ -1,8 +1,11 @@
 from typing import Annotated
+import io
+import base64
 
 from fastapi import APIRouter, status, HTTPException, Form
 from fastapi.responses import HTMLResponse
 from sqlalchemy.exc import NoResultFound
+import matplotlib.pyplot as plt
 
 from src.logger import logger
 from src.db import Session
@@ -12,10 +15,7 @@ from src.routers.user.models import UserRole
 
 from .schemas import VoteFormContext, VoteForm, VoteAdminContext, CodesForm
 from .repo import VoteRepository
-
-import matplotlib.pyplot as plt
-import io
-import base64
+from .models import Vote, Reports
 
 
 vote_router = APIRouter(prefix="/vote")
@@ -70,12 +70,11 @@ async def get_admin(
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
 
     votes = await VoteRepository(session).get()
-    logger.info(votes)
-
-    img = "data:image/png;base64," + get_pic(votes)
+    image = get_vote_results_plot(votes)
 
     return templates.render(
-        "vote/admin.jinja", VoteAdminContext(current_user=current_user, image=img)
+        "vote/admin.jinja",
+        VoteAdminContext(current_user=current_user, image=image),
     )
 
 
@@ -109,29 +108,17 @@ async def post_admin(
     )
 
 
-def get_pic(votes):
-    print(votes)
-    categories = ["A", "B", "C", "D", "E"]
-    vals = [0, 0, 0, 0, 0]
+def get_vote_results_plot(votes: list[Vote]) -> str:
+    lables = list(map(str, Reports))
+    cnt = dict(zip(lables, [0] * len(Reports)))
     for vote in votes:
-        if vote.report is None:
-            continue
-        if vote.report.value == "a":
-            vals[0] += 1
-        elif vote.report.value == "b":
-            vals[1] += 1
-        elif vote.report.value == "c":
-            vals[2] += 1
-        elif vote.report.value == "d":
-            vals[3] += 1
-        elif vote.report.value == "e":
-            vals[4] += 1
-    plt.bar(categories, vals)
+        if vote.report:
+            cnt[vote.report.value] += 1
+    values = [cnt[lable] for lable in lables]
+    plt.bar(lables, values)
     plt.title("Результаты голосования")
-
-    buf = io.BytesIO()
-    plt.savefig(buf, format="jpg")
-    buf.seek(0)
-    img = base64.b64encode(buf.read()).decode('utf-8')
-    buf.close
-    return img
+    with io.BytesIO() as buf:
+        plt.savefig(buf, format="jpeg")
+        img_b64 = base64.b64encode(buf.getvalue()).decode("utf-8")
+    plt.close()
+    return f"data:image/jpeg;base64,{img_b64}"

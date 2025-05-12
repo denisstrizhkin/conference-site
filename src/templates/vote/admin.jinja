@@ -2,24 +2,20 @@
 {% block main %}
     {% if message %}<div class="alert alert-success" role="alert">{{ message }}</div>{% endif %}
     <ul>
-        {% for item in reports %}
-            <li>
-                {{ item }}
-                <li>
-                {% endfor %}
-            </ul>
-            <form action="/vote/admin" method="post" enctype="multipart/form-data">
-                <div class="mb-3">
-                    <label class="form-label">
-                        <input class="form-control"
-                               type="file"
-                               name="codes_file"
-                               accept=".txt, text/plain">
-                        Файл со списком Id для голосования
-                    </label>
-                </div>
-                <button type="submit" class="btn btn-primary">Сохранить</button>
-            </form>
-            <hr class="my-5">
-            <img src={{ image }}>
-        {% endblock %}
+        {% for item in reports %}<li>{{ item }}</li>{% endfor %}
+    </ul>
+    <form action="/vote/admin" method="post" enctype="multipart/form-data">
+        <div class="mb-3">
+            <label class="form-label">
+                <input class="form-control"
+                       type="file"
+                       name="codes_file"
+                       accept=".txt, text/plain">
+                Файл со списком Id для голосования
+            </label>
+        </div>
+        <button type="submit" class="btn btn-primary">Сохранить</button>
+    </form>
+    <hr class="my-5">
+    <img src={{ image }}>
+{% endblock %}
