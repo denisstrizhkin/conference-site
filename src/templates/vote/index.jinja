@@ -25,7 +25,8 @@
                                            type="radio"
                                            name="report"
                                            value="{{ report[0] }}"
-                                           {% if report[0] == selected %}checked{% endif %}>
+                                           {% if report[0] == selected %}checked{% endif %}
+                                           required>
                                     {{ report[1] }}
                                 </label>
                             </div>
