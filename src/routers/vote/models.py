@@ -10,6 +10,13 @@ class Reports(StrEnum):
     c = auto()
     d = auto()
     e = auto()
+    f = auto()
+    g = auto()
+    h = auto()
+    i = auto()
+    j = auto()
+    k = auto()
+    l = auto()
 
 
 class Vote(SQLModel, table=True):

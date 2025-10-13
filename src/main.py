@@ -70,6 +70,4 @@ async def internal_exception_handler(request: Request, exc: HTTPException):
 
 @app.exception_handler(status.HTTP_401_UNAUTHORIZED)
 async def unauthorized_exception_handler(request: Request, exc: HTTPException):
-    return RedirectResponse(
-        url="/auth/login", status_code=status.HTTP_303_SEE_OTHER
-    )
+    return RedirectResponse(url="/auth/login", status_code=status.HTTP_303_SEE_OTHER)
