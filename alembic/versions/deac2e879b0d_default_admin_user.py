@@ -25,7 +25,7 @@ def upgrade() -> None:
     op.execute(
         """
 insert into user (email, password, role)
-values ('admin@example.com', '$2b$12$WWrEeRXZkyC7TKr.arTcCOIwKWZJWo/TnUyxsmqgvbPtbazb67hD6', 'admin');
+values ('admin', '$2b$12$WWrEeRXZkyC7TKr.arTcCOIwKWZJWo/TnUyxsmqgvbPtbazb67hD6', 'admin');
 """
     )
 

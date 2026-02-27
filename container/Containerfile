@@ -18,11 +18,10 @@ COPY pyproject.toml .
 COPY uv.lock .
 COPY settings.toml .
 COPY alembic.ini .
+RUN uv sync --frozen
+
 ADD src ./src
 ADD alembic ./alembic
-
-# Sync the project into a new environment, using the frozen lockfile
-RUN uv sync --frozen
 
 # Run the web app
 CMD ["/app/.venv/bin/fastapi", "run", "/app/src/main.py", "--port", "80", "--host", "0.0.0.0"]
