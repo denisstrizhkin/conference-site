@@ -49,3 +49,8 @@ class UserRepository:
         )
         await self._session.execute(stmt)
         return await self.get_one(id=user.id)
+
+    async def delete(self, id: int):
+        from sqlmodel import delete
+        stmt = delete(User).where(User.id == id)
+        await self._session.execute(stmt)

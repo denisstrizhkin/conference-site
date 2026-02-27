@@ -137,6 +137,41 @@ async def get_users(
     )
 
 
+@user_router.post("/{user_id}/delete", response_class=HTMLResponse)
+async def delete_user(
+    user_id: int,
+    templates: TemplateRenderer,
+    session: Session,
+    current_user: CurrentUser,
+):
+    if current_user.role != UserRole.admin:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
+
+    user_repo = UserRepository(session)
+    user = await user_repo.get_one_or_none(user_id)
+    if user is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+
+    if user.role == UserRole.admin:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
+
+    if user.form:
+        await FileRepository(session).delete(user.form.file_id)
+
+    user_name = f"{user.surname or ''} {user.name or ''}".strip() or user.email
+    await user_repo.delete(user_id)
+
+    users = await user_repo.get()
+    return templates.render(
+        "user/list.jinja",
+        context=UsersContext(
+            current_user=current_user,
+            users=users,
+            message=f"Пользователь удален {user_name}",
+        ),
+    )
+
+
 # 3. Define the endpoint
 @user_router.get("/excel/")
 async def generate_excel(
