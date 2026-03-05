@@ -43,6 +43,8 @@ command="/app/.venv/bin/fastapi"
 command_args="run /app/src/main.py --port 80 --host 0.0.0.0"
 command_background=true
 pidfile="/run/${RC_SVCNAME}.pid"
+output_log="/var/log/${RC_SVCNAME}.log"
+error_log="/var/log/${RC_SVCNAME}.err"
 directory="/app"
 
 depend() {
