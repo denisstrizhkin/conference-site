@@ -5,41 +5,55 @@ on:
     branches: [main]
   workflow_dispatch:
 
+env:
+  ALPINE_MAKE_VM_IMAGE_VERSION: "0.13.3"
+  ALPINE_MAKE_VM_IMAGE_SHA1: "f17ef4997496ace524a8e8e578d944f3552255bb"
+  ALPINE_BRANCH: "3.21"
+  IMAGE_SIZE: "4G"
+  QCOW2_IMAGE: conference-site.qcow2
+  VMDK_IMAGE: conference-site.vmdk
+
 jobs:
   build-vm:
     runs-on: ubuntu-latest
 
-    env:
-      # VM disk/image names
-      ALPINE_ISO_VERSION: "3.21.3"
-      ALPINE_ARCH: "x86_64"
-      VM_DISK: vm-disk.qcow2
-      VM_DISK_SIZE: 4G
-      QEMU_SSH_PORT: 2222
-      VMDK_NAME: conference-site.vmdk
-
     steps:
       # ------------------------------------------------------------------ #
-      # 1. Checkout source
+      # 1. Checkout
       # ------------------------------------------------------------------ #
       - name: Checkout
         uses: actions/checkout@v4
 
       # ------------------------------------------------------------------ #
-      # 2. Install QEMU and required tools
+      # 2. Load NBD kernel module (required by alpine-make-vm-image)
       # ------------------------------------------------------------------ #
-      - name: Install QEMU & tools
+      - name: Load nbd kernel module
+        run: sudo modprobe nbd max_part=16
+
+      # ------------------------------------------------------------------ #
+      # 3. Install host dependencies
+      # ------------------------------------------------------------------ #
+      - name: Install dependencies
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y --no-install-recommends \
-            qemu-system-x86 qemu-utils \
-            sshpass openssh-client \
-            python3 python3-pip \
-            xorriso
+            qemu-utils \
+            rsync \
+            python3 \
+            python3-pip
 
       # ------------------------------------------------------------------ #
-      # 3. Pre-compute bcrypt hash for admin password
-      #    (uses passlib on the runner – no secret ever touches the VM disk)
+      # 4. Download alpine-make-vm-image (pinned by SHA1)
+      # ------------------------------------------------------------------ #
+      - name: Download alpine-make-vm-image
+        run: |
+          wget -q "https://raw.githubusercontent.com/alpinelinux/alpine-make-vm-image/v${ALPINE_MAKE_VM_IMAGE_VERSION}/alpine-make-vm-image"
+          echo "${ALPINE_MAKE_VM_IMAGE_SHA1}  alpine-make-vm-image" | sha1sum -c
+          chmod +x alpine-make-vm-image
+
+      # ------------------------------------------------------------------ #
+      # 5. Pre-compute bcrypt hash for the admin password.
+      #    The plain-text password never leaves the runner.
       # ------------------------------------------------------------------ #
       - name: Generate admin password hash
         id: hash
@@ -50,263 +64,89 @@ jobs:
           HASH=$(python3 - <<'EOF'
           import os
           from passlib.hash import bcrypt
-          pw = os.environ["ADMIN_PASSWORD"]
-          print(bcrypt.hash(pw))
+          print(bcrypt.hash(os.environ["ADMIN_PASSWORD"]))
           EOF
           )
-          # Mask the hash in logs
           echo "::add-mask::$HASH"
           echo "admin_hash=$HASH" >> "$GITHUB_OUTPUT"
 
       # ------------------------------------------------------------------ #
-      # 4. Download Alpine Linux ISO
+      # 6. Assemble the rootfs skeleton that will be copied into the image.
+      #    This is where we write settings.toml from secrets – it never
+      #    touches the repository or any artifact in plain text form.
       # ------------------------------------------------------------------ #
-      - name: Download Alpine ISO
-        run: |
-          ISO="alpine-virt-${ALPINE_ISO_VERSION}-${ALPINE_ARCH}.iso"
-          curl -fsSL \
-            "https://dl-cdn.alpinelinux.org/alpine/v${ALPINE_ISO_VERSION%.*}/releases/${ALPINE_ARCH}/${ISO}" \
-            -o alpine.iso
-
-      # ------------------------------------------------------------------ #
-      # 5. Create a blank QCOW2 disk image
-      # ------------------------------------------------------------------ #
-      - name: Create blank VM disk
-        run: qemu-img create -f qcow2 "$VM_DISK" "$VM_DISK_SIZE"
-
-      # ------------------------------------------------------------------ #
-      # 6. Build an Alpine answers file for unattended install
-      #    and pack it into a small seed ISO so the VM can auto-install.
-      # ------------------------------------------------------------------ #
-      - name: Build Alpine auto-install seed ISO
-        run: |
-          mkdir -p seed
-
-          # answers file understood by alpine's setup-alpine
-          cat > seed/answers <<'ANSWERS'
-          KEYMAPOPTS="us us"
-          HOSTNAMEOPTS="-n conference-site"
-          INTERFACESOPTS="auto lo
-          iface lo inet loopback
-
-          auto eth0
-          iface eth0 inet dhcp
-          "
-          TIMEZONEOPTS="-z UTC"
-          PROXYOPTS="none"
-          APKREPOSOPTS="-1"
-          SSHDOPTS="-c openssh"
-          NTPOPTS="-c chrony"
-          DISKOPTS="-m sys /dev/vda"
-          DNSOPTS="-d localdomain 8.8.8.8"
-          ANSWERS
-
-          # A simple init script that: runs setup-alpine, then reboots
-          cat > seed/init.sh <<'INIT'
-          #!/bin/sh
-          # Enable community repo
-          sed -i 's|#.*community|http://dl-cdn.alpinelinux.org/alpine/latest-stable/community|' \
-              /etc/apk/repositories
-          # Permit root login over SSH with password (ephemeral VM only!)
-          sed -i 's/^#\?PermitRootLogin.*/PermitRootLogin yes/' /etc/ssh/sshd_config
-          sed -i 's/^#\?PasswordAuthentication.*/PasswordAuthentication yes/' /etc/ssh/sshd_config
-          echo "root:toor" | chpasswd
-          rc-service sshd restart
-          INIT
-          chmod +x seed/init.sh
-
-          # Pack into an ISO that QEMU can attach as a CD-ROM
-          genisoimage -o seed.iso -J -R seed/ 2>/dev/null || \
-            xorriso -as mkisofs -o seed.iso -J -R seed/
-
-      # ------------------------------------------------------------------ #
-      # 7. Run the bare-metal Alpine installer inside QEMU (headless)
-      # ------------------------------------------------------------------ #
-      - name: Install Alpine into disk image
-        timeout-minutes: 15
-        run: |
-          # Boot from the Alpine ISO, attach our blank disk and seed ISO
-          qemu-system-x86_64 \
-            -m 2048 \
-            -smp 2 \
-            -nographic \
-            -drive file="$VM_DISK",format=qcow2,if=virtio \
-            -drive file=alpine.iso,format=raw,if=virtio,readonly=on \
-            -drive file=seed.iso,format=raw,if=virtio,readonly=on \
-            -netdev user,id=net0,hostfwd=tcp::${QEMU_SSH_PORT}-:22 \
-            -device virtio-net-pci,netdev=net0 \
-            -boot d &
-          QEMU_PID=$!
-          echo "QEMU_PID=$QEMU_PID" >> "$GITHUB_ENV"
-
-          # Wait for SSH to come up (Alpine live environment starts sshd)
-          echo "Waiting for SSH..."
-          for i in $(seq 1 120); do
-            if sshpass -p toor \
-                ssh -o StrictHostKeyChecking=no \
-                    -o ConnectTimeout=3 \
-                    -p "$QEMU_SSH_PORT" root@localhost true 2>/dev/null; then
-              echo "SSH is up."
-              break
-            fi
-            sleep 5
-          done
-
-          # The Alpine live ISO does NOT auto-login/run scripts, so we push
-          # the init script and run it to enable SSH with a known password.
-          # Then we run setup-alpine in automatic (answers-file) mode.
-          sshpass -p "" \
-            ssh -o StrictHostKeyChecking=no \
-                -p "$QEMU_SSH_PORT" root@localhost \
-            "setup-alpine -f /media/vdb/answers && poweroff" || true
-
-          wait $QEMU_PID || true
-
-      # ------------------------------------------------------------------ #
-      # 8. Copy project files into the installed VM
-      # ------------------------------------------------------------------ #
-      - name: Boot installed VM and provision app
-        timeout-minutes: 20
+      - name: Build rootfs skeleton
         env:
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
-          ADMIN_PASSWORD_HASH: ${{ steps.hash.outputs.admin_hash }}
-          APP_ECHO_SQL: "false"
-          APP_SHOW_DOCS: "false"
-          APP_JWT_ALGORITHM: "HS256"
-          APP_JWT_EXPIRE_MINUTES: "60"
         run: |
-          # Boot the installed disk (no ISO)
-          qemu-system-x86_64 \
-            -m 2048 \
-            -smp 2 \
-            -nographic \
-            -drive file="$VM_DISK",format=qcow2,if=virtio \
-            -netdev user,id=net0,hostfwd=tcp::${QEMU_SSH_PORT}-:22 \
-            -device virtio-net-pci,netdev=net0 &
-          QEMU_PID=$!
-          echo "QEMU_PID=$QEMU_PID" >> "$GITHUB_ENV"
+          mkdir -p rootfs/app
 
-          SSH="sshpass -p toor ssh -o StrictHostKeyChecking=no -p $QEMU_SSH_PORT root@localhost"
-          SCP="sshpass -p toor scp -o StrictHostKeyChecking=no -P $QEMU_SSH_PORT"
+          # Copy project source, excluding things that should not go in the VM
+          rsync -a \
+            --exclude='.git' \
+            --exclude='.venv' \
+            --exclude='data.db' \
+            --exclude='settings.toml' \
+            --exclude='vm/' \
+            --exclude='.github/' \
+            . rootfs/app/
 
-          echo "Waiting for SSH on installed VM..."
-          for i in $(seq 1 120); do
-            if $SSH true 2>/dev/null; then
-              echo "SSH ready."
-              break
-            fi
-            sleep 5
-          done
-
-          # ---- Install system dependencies ----
-          $SSH <<'REMOTE'
-          set -e
-          apk update
-          apk add --no-cache \
-            python3 \
-            curl \
-            ca-certificates \
-            sqlite \
-            openssl
-          REMOTE
-
-          # ---- Install uv ----
-          $SSH <<'REMOTE'
-          curl -LsSf https://astral.sh/uv/install.sh | sh
-          echo 'export PATH="$HOME/.local/bin:$PATH"' >> /etc/profile.d/uv.sh
-          REMOTE
-
-          # ---- Upload project source ----
-          # Exclude .venv, .git, data.db, and the existing settings.toml
-          $SSH "mkdir -p /app"
-          tar --exclude='.git' \
-              --exclude='.venv' \
-              --exclude='data.db' \
-              --exclude='settings.toml' \
-              -czf - . | \
-            $SCP /dev/stdin root@localhost:/tmp/app.tar.gz 2>/dev/null || \
-          tar --exclude='.git' \
-              --exclude='.venv' \
-              --exclude='data.db' \
-              --exclude='settings.toml' \
-              -czf /tmp/app.tar.gz .
-          $SCP /tmp/app.tar.gz root@localhost:/tmp/app.tar.gz 2>/dev/null || true
-          $SSH "tar -xzf /tmp/app.tar.gz -C /app && rm /tmp/app.tar.gz"
-
-          # ---- Write settings.toml from secrets (never stored in repo) ----
-          $SSH "cat > /app/settings.toml" <<TOMLEOF
-          echo_sql = ${APP_ECHO_SQL}
-          show_docs = ${APP_SHOW_DOCS}
-          jwt_secret = "${JWT_SECRET}"
-          jwt_algorithm = "${APP_JWT_ALGORITHM}"
-          jwt_expire_minutes = "${APP_JWT_EXPIRE_MINUTES}"
-          TOMLEOF
-
-          # ---- Install Python deps with uv ----
-          $SSH <<'REMOTE'
-          set -e
-          export PATH="$HOME/.local/bin:$PATH"
-          cd /app
-          uv sync --frozen --no-dev
-          REMOTE
-
-          # ---- Run Alembic migrations (includes admin user with hashed pw) ----
-          $SSH "export ADMIN_PASSWORD_HASH='${ADMIN_PASSWORD_HASH}'; \
-                export PATH=\"\$HOME/.local/bin:\$PATH\"; \
-                cd /app && \
-                uv run alembic upgrade head"
-
-          # ---- Install and enable the app as an OpenRC service ----
-          $SSH <<'REMOTE'
-          cat > /etc/init.d/conference-site <<'SERVICE'
-          #!/sbin/openrc-run
-
-          name="conference-site"
-          description="Conference site FastAPI app"
-          command="/app/.venv/bin/fastapi"
-          command_args="run /app/src/main.py --port 80 --host 0.0.0.0"
-          command_background=true
-          pidfile="/run/${RC_SVCNAME}.pid"
-          directory="/app"
-
-          depend() {
-              need net
-              after firewall
-          }
-          SERVICE
-          chmod +x /etc/init.d/conference-site
-          rc-update add conference-site default
-          REMOTE
-
-          # ---- Shut down the VM cleanly ----
-          $SSH "poweroff" || true
-          wait $QEMU_PID || true
+          # Write settings.toml into the skeleton from GitHub Secrets.
+          # This file only ever exists inside the VM disk image.
+          # Use printf to avoid heredoc indentation leaking into the file.
+          printf 'echo_sql = false\nshow_docs = false\njwt_secret = "%s"\njwt_algorithm = "HS256"\njwt_expire_minutes = 60\n' \
+            "$JWT_SECRET" > rootfs/app/settings.toml
 
       # ------------------------------------------------------------------ #
-      # 9. Convert QCOW2 → VMDK (VMware-compatible)
+      # 7. Build the Alpine QCOW2 image.
+      #    alpine-make-vm-image mounts the image, installs packages, copies
+      #    the rootfs skeleton, then runs configure.sh inside the chroot.
+      #    No QEMU boot needed — fast (~32s).
+      # ------------------------------------------------------------------ #
+      - name: Build QCOW2 image
+        env:
+          ADMIN_PASSWORD_HASH: ${{ steps.hash.outputs.admin_hash }}
+        run: |
+          sudo -E ./alpine-make-vm-image \
+            --image-format qcow2 \
+            --image-size "$IMAGE_SIZE" \
+            --branch "$ALPINE_BRANCH" \
+            --packages "python3 curl ca-certificates sqlite openssl" \
+            --fs-skel-dir rootfs \
+            --fs-skel-chown root:root \
+            --script-chroot \
+            "$QCOW2_IMAGE" -- ./vm/configure.sh
+          # Restore ownership so upload-artifact can read the image
+          sudo chown "$(id -un)" "$QCOW2_IMAGE"
+
+      # ------------------------------------------------------------------ #
+      # 8. Convert QCOW2 → VMDK (flat / monolithicFlat for ESXi compat).
+      #    streamOptimized has data corruption issues on ESXi.
+      #    Compress the flat image to avoid uploading gigabytes of zeros.
       # ------------------------------------------------------------------ #
       - name: Convert QCOW2 to VMDK
         run: |
           qemu-img convert \
             -f qcow2 \
             -O vmdk \
-            -o subformat=streamOptimized \
-            "$VM_DISK" \
-            "$VMDK_NAME"
+            -o adapter_type=lsilogic,subformat=monolithicFlat \
+            "$QCOW2_IMAGE" \
+            "$VMDK_IMAGE"
+          gzip -k "$VMDK_IMAGE"
 
       # ------------------------------------------------------------------ #
-      # 10. Upload both image artefacts
+      # 9. Upload artifacts
       # ------------------------------------------------------------------ #
-      - name: Upload QCOW2 artefact
+      - name: Upload QCOW2
         uses: actions/upload-artifact@v4
         with:
           name: conference-site-qcow2
-          path: ${{ env.VM_DISK }}
+          path: ${{ env.QCOW2_IMAGE }}
           retention-days: 14
 
-      - name: Upload VMDK artefact
+      - name: Upload VMDK (gzipped)
         uses: actions/upload-artifact@v4
         with:
           name: conference-site-vmdk
-          path: ${{ env.VMDK_NAME }}
+          path: ${{ env.VMDK_IMAGE }}.gz
           retention-days: 14
