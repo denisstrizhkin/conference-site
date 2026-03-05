@@ -14,8 +14,9 @@ APP_DIR=/app
 # ---------------------------------------------------------------------------
 # Install uv
 # ---------------------------------------------------------------------------
+export UV_INSTALL_DIR="/usr/local/bin"
 curl -LsSf https://astral.sh/uv/install.sh | sh
-export PATH="/root/.local/bin:$PATH"
+export PATH="/usr/local/bin:$PATH"
 
 # ---------------------------------------------------------------------------
 # Sync Python dependencies.
