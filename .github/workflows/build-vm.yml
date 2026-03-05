@@ -106,12 +106,13 @@ jobs:
       - name: Build QCOW2 image
         env:
           ADMIN_PASSWORD_HASH: ${{ steps.hash.outputs.admin_hash }}
+          ROOT_PASSWORD: ${{ secrets.ROOT_PASSWORD }}
         run: |
           sudo -E ./alpine-make-vm-image \
             --image-format qcow2 \
             --image-size "$IMAGE_SIZE" \
             --branch "$ALPINE_BRANCH" \
-            --packages "python3 curl ca-certificates sqlite openssl" \
+            --packages "python3 curl ca-certificates sqlite openssl openssh" \
             --fs-skel-dir rootfs \
             --fs-skel-chown root:root \
             --script-chroot \

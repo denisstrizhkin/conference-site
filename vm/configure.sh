@@ -53,3 +53,16 @@ SERVICE
 
 chmod +x /etc/init.d/conference-site
 rc-update add conference-site default
+# ---------------------------------------------------------------------------
+# Enable SSH
+# ---------------------------------------------------------------------------
+rc-update add sshd default
+
+# Allow root login with password (convenient for initial setup/debugging)
+sed -i 's/^#\?PermitRootLogin.*/PermitRootLogin yes/' /etc/ssh/sshd_config
+sed -i 's/^#\?PasswordAuthentication.*/PasswordAuthentication yes/' /etc/ssh/sshd_config
+
+# Set root password if ROOT_PASSWORD is provided
+if [ -n "${ROOT_PASSWORD:-}" ]; then
+    echo "root:$ROOT_PASSWORD" | chpasswd
+fi
