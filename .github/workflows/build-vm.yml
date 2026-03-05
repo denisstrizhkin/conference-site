@@ -127,13 +127,16 @@ jobs:
       # ------------------------------------------------------------------ #
       - name: Convert QCOW2 to VMDK
         run: |
+          # monolithicFlat produces two files: [name].vmdk and [name]-flat.vmdk
           qemu-img convert \
             -f qcow2 \
             -O vmdk \
             -o adapter_type=lsilogic,subformat=monolithicFlat \
             "$QCOW2_IMAGE" \
             "$VMDK_IMAGE"
-          gzip -k "$VMDK_IMAGE"
+          
+          # Package both files into a single compressed archive
+          tar -czf "${VMDK_IMAGE}.tar.gz" "$VMDK_IMAGE" "${VMDK_IMAGE%.vmdk}-flat.vmdk"
 
       # ------------------------------------------------------------------ #
       # 9. Upload artifacts
@@ -145,9 +148,9 @@ jobs:
           path: ${{ env.QCOW2_IMAGE }}
           retention-days: 14
 
-      - name: Upload VMDK (gzipped)
+      - name: Upload VMDK (tar.gz)
         uses: actions/upload-artifact@v4
         with:
           name: conference-site-vmdk
-          path: ${{ env.VMDK_IMAGE }}.gz
+          path: ${{ env.VMDK_IMAGE }}.tar.gz
           retention-days: 14
