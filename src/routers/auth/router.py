@@ -13,6 +13,7 @@ from .schemas import (
     RegisterForm,
     LoginForm,
 )
+from src.settings import settings
 from .depends import (
     create_access_token,
     PassHasher,
@@ -85,7 +86,7 @@ async def login(
         value=f"{token}",
         httponly=True,
         max_age=expires,
-        secure=True,  # Set to True in production with HTTPS
+        secure=settings.secure_cookies,
         samesite="lax",
     )
 
@@ -99,7 +100,7 @@ async def logout():
     response.delete_cookie(
         key="access_token",
         httponly=True,
-        secure=True,  # For HTTPS
+        secure=settings.secure_cookies,
         samesite="lax",
     )
 

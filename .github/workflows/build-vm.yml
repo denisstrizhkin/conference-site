@@ -94,7 +94,7 @@ jobs:
           # Write settings.toml into the skeleton from GitHub Secrets.
           # This file only ever exists inside the VM disk image.
           # Use printf to avoid heredoc indentation leaking into the file.
-          printf 'echo_sql = false\nshow_docs = false\njwt_secret = "%s"\njwt_algorithm = "HS256"\njwt_expire_minutes = 60\n' \
+          printf 'echo_sql = false\nshow_docs = false\njwt_secret = "%s"\njwt_algorithm = "HS256"\njwt_expire_minutes = 60\nsecure_cookies = false\n' \
             "$JWT_SECRET" > rootfs/app/settings.toml
 
       # ------------------------------------------------------------------ #

@@ -2,4 +2,5 @@ echo_sql = true
 show_docs = true
 jwt_secret = "123456"
 jwt_algorithm = "HS256"
-jwt_expire_minutes = "60"
+jwt_expire_minutes = 60
+secure_cookies = true
