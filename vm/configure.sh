@@ -9,6 +9,10 @@
 
 set -eu
 
+# ---------------------------------------------------------------------------
+# Setup environment
+# ---------------------------------------------------------------------------
+export HOME=/root
 APP_DIR=/app
 
 # ---------------------------------------------------------------------------
@@ -24,6 +28,7 @@ export PATH="/usr/local/bin:$PATH"
 # ---------------------------------------------------------------------------
 cd "$APP_DIR"
 uv sync --frozen
+uv cache clean
 
 # ---------------------------------------------------------------------------
 # Run Alembic migrations (includes admin user migration).
@@ -68,3 +73,10 @@ sed -i 's/^#\?PasswordAuthentication.*/PasswordAuthentication yes/' /etc/ssh/ssh
 if [ -n "${ROOT_PASSWORD:-}" ]; then
     echo "root:$ROOT_PASSWORD" | chpasswd
 fi
+
+# ---------------------------------------------------------------------------
+# Final Cleanup
+# ---------------------------------------------------------------------------
+# Remove the uv cache and any accidental runner home directory inherited from host
+rm -rf /root/.cache/uv
+rm -rf /home/runner
