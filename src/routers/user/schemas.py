@@ -62,7 +62,8 @@ class UserFormContext(BaseContext):
             self.roles = [
                 (UserRole.basic, "Не участвую"),
                 (UserRole.viewer, "Без доклада"),
-                (UserRole.participant, "С докладом"),
+                (UserRole.participant_classical, "Классический доклад"),
+                (UserRole.participant_nonlinear, "Нелинейный доклад"),
             ]
 
         return self

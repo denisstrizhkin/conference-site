@@ -216,12 +216,11 @@
                             </label>
                         </div>
                         <p class="fs-6 mt-4">
-                            <strong>Файл с тезисом:</strong>
+                            <strong>Файл с OnePager:</strong>
                         </p>
                         <p class="fs-6 pb-2">
-                            Ваши тезисы, оформленные в соответствии с шаблоном в формате
-                            <a href="/static/appl_templates/abstract.docx">.docx</a> или
-                            <a href="/static/appl_templates/abstract.tex">.tex</a>.
+                            Ваш OnePager, оформленный в соответствии с 
+                            <a href="/static/appl_templates/abstract.docx">шаблоном</a>.
                         </p>
                         <div class="mt-4">
                             <label class="form-label">
@@ -306,7 +305,7 @@ function updateForm() {
     };
     // Add change event listener
     selectedRole.addEventListener("change", function (e) {
-        if (e.target.value === "participant") {
+        if (e.target.value === "participant_classical" || e.target.value === "participant_nonlinear") {
             restoreReportForm();
             updateFile();
         } else {
