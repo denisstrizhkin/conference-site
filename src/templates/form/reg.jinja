@@ -305,7 +305,7 @@ function updateForm() {
     };
     // Add change event listener
     selectedRole.addEventListener("change", function (e) {
-        if (e.target.value === "participant_classical" || e.target.value === "participant_nonlinear") {
+        if (e.target.value === "participant") {
             restoreReportForm();
             updateFile();
         } else {

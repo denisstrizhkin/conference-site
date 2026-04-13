@@ -29,8 +29,7 @@ class ReportForm(BaseModel):
 class UserRole(StrEnum):
     admin = auto()
     basic = auto()
-    participant_classical = auto()
-    participant_nonlinear = auto()
+    participant = auto()
     viewer = auto()
 
 
