@@ -1,17 +1,15 @@
-from typing import Optional, Annotated
 from dataclasses import dataclass
+from typing import Annotated
 
-from fastapi import HTTPException, status, Depends
-
-from sqlalchemy.ext.asyncio import AsyncSession
+from fastapi import Depends, HTTPException, status
 from sqlalchemy.exc import NoResultFound
-from sqlmodel import select, update, delete
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlmodel import delete, select, update
 
-from src.db import Session
 from src.controllers.file_controller import FileController
+from src.db import Session
 from src.routers.files.models import File
-
-from src.routers.user.models import User, ReportForm, UserRole
+from src.routers.user.models import ReportForm, User, UserRole
 from src.routers.user.schemas import UserForm
 
 
@@ -23,8 +21,8 @@ class UserNew:
 
 @dataclass
 class UserFilter:
-    id: Optional[int] = None
-    email: Optional[str] = None
+    id: int | None = None
+    email: str | None = None
 
 
 class UserRepo:
@@ -54,7 +52,9 @@ class UserRepo:
         return [User.model_validate(user) for user in result.scalars().all()]
 
     async def update(self, user: User) -> User:
-        stmt = update(User).where(user.id == User.id).values(**user.model_dump())
+        stmt = (
+            update(User).where(user.id == User.id).values(**user.model_dump())
+        )
         await self._session.execute(stmt)
         return await self.get_one(UserFilter(id=user.id))
 
@@ -77,7 +77,7 @@ class UserController:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
         return user
 
-    async def get_one_or_none(self, user_filter: UserFilter) -> Optional[User]:
+    async def get_one_or_none(self, user_filter: UserFilter) -> User | None:
         try:
             return await self._user_repo.get_one(user_filter)
         except NoResultFound:
@@ -98,9 +98,11 @@ class UserController:
         await self._user_repo.delete(id)
         return user
 
-    async def get_user_file_or_none(self, user: User) -> Optional[File]:
+    async def get_user_file_or_none(self, user: User) -> File | None:
         if user.form and user.form.file_id is not None:
-            return await self._file_controller.get_one_or_none(user.form.file_id)
+            return await self._file_controller.get_one_or_none(
+                user.form.file_id
+            )
         return None
 
     async def get_user_file(self, user: User) -> File:
@@ -110,7 +112,7 @@ class UserController:
 
     async def get_user_with_file(
         self, user_filter: UserFilter
-    ) -> tuple[User, Optional[File]]:
+    ) -> tuple[User, File | None]:
         user = await self.get_one(user_filter)
         file = await self.get_user_file_or_none(user)
         return user, file
@@ -125,10 +127,10 @@ class UserController:
 
     async def update_from_user_form(
         self,
-        user: User,
+        user_id: int,
         form: UserForm,
-    ) -> tuple[User, Optional[File]]:
-        user = await self.get_one(UserFilter(id=user.id))
+    ) -> tuple[User, File | None]:
+        user = await self.get_one(UserFilter(id=user_id))
         report_form, file = await self.update_report_form(user, form)
         user = user.model_copy(
             update={
@@ -148,7 +150,7 @@ class UserController:
 
     async def update_report_form(
         self, user: User, form: UserForm
-    ) -> tuple[Optional[ReportForm], Optional[File]]:
+    ) -> tuple[ReportForm | None, File | None]:
         file = await self.get_user_file_or_none(user)
         if form.role != UserRole.participant:
             if file is not None:

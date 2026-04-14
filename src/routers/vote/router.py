@@ -1,21 +1,20 @@
-from typing import Annotated, Optional
-import io
 import base64
+import io
+from typing import Annotated
 
-from fastapi import APIRouter, status, HTTPException, Form
+import matplotlib.pyplot as plt
+from fastapi import APIRouter, Form, HTTPException, status
 from fastapi.responses import HTMLResponse
 from sqlalchemy.exc import NoResultFound
-import matplotlib.pyplot as plt
 
 from src.db import Session
 from src.depends import TemplateRenderer
-from src.routers.auth.depends import CurrentUserOrNone, CurrentUser
-from src.routers.user.models import UserRole, User
+from src.routers.auth.depends import CurrentUser, CurrentUserOrNone
+from src.routers.user.models import User, UserRole
 
-from .schemas import VoteFormContext, VoteForm, VoteAdminContext, CodesForm
+from .models import Reports, Vote
 from .repo import VoteRepository
-from .models import Vote, Reports
-
+from .schemas import CodesForm, VoteAdminContext, VoteForm, VoteFormContext
 
 vote_router = APIRouter(prefix="/vote")
 
@@ -61,7 +60,7 @@ async def post_vote(
 
 def get_vote_results_plot(votes: list[Vote]) -> str:
     lables = list(map(str, Reports))
-    cnt = dict(zip(lables, [0] * len(Reports)))
+    cnt = dict(zip(lables, [0] * len(Reports), strict=False))
     for vote in votes:
         if vote.report:
             cnt[vote.report.value] += 1
@@ -78,7 +77,7 @@ def get_vote_results_plot(votes: list[Vote]) -> str:
 async def get_vote_admin_context(
     vote_repo: VoteRepository,
     current_user: User,
-    message: Optional[str] = None,
+    message: str | None = None,
 ) -> VoteAdminContext:
     votes = await vote_repo.get()
     return VoteAdminContext(

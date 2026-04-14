@@ -1,8 +1,8 @@
-from typing import Annotated, Optional
-
 from enum import StrEnum, auto
-from sqlmodel import SQLModel, Field, UniqueConstraint, JSON, Column
+from typing import Annotated
+
 from pydantic import BaseModel
+from sqlmodel import JSON, Column, Field, SQLModel, UniqueConstraint
 
 
 class ReportType(StrEnum):
@@ -18,8 +18,8 @@ class ReportFormType(StrEnum):
 class ReportForm(BaseModel):
     form_type: ReportFormType = Field(default=ReportFormType.classical)
 
-    report_name: Optional[str] = None
-    report_type: Optional[ReportType] = None
+    report_name: str | None = None
+    report_type: ReportType | None = None
 
     flag_bio_phys: bool
     flag_comp_sci: bool
@@ -30,11 +30,11 @@ class ReportForm(BaseModel):
     flag_solid_body: bool
     flag_space_phys: bool
 
-    file_id: Optional[int] = None
+    file_id: int | None = None
 
-    work_place: Optional[str] = None
-    supervisor: Optional[str] = None
-    expected_topic: Optional[str] = None
+    work_place: str | None = None
+    supervisor: str | None = None
+    expected_topic: str | None = None
 
 
 class UserRole(StrEnum):
@@ -56,14 +56,14 @@ class User(SQLModel, table=True):
         sa_column_kwargs={"server_default": UserRole.basic},
     )
 
-    name: Annotated[Optional[str], Field(default=None, nullable=True)]
-    surname: Annotated[Optional[str], Field(default=None, nullable=True)]
-    patronymic: Annotated[Optional[str], Field(default=None, nullable=True)]
-    organization: Annotated[Optional[str], Field(default=None, nullable=True)]
-    year: Annotated[Optional[int], Field(default=None, nullable=True)]
-    contact: Annotated[Optional[str], Field(default=None, nullable=True)]
+    name: Annotated[str | None, Field(default=None, nullable=True)]
+    surname: Annotated[str | None, Field(default=None, nullable=True)]
+    patronymic: Annotated[str | None, Field(default=None, nullable=True)]
+    organization: Annotated[str | None, Field(default=None, nullable=True)]
+    year: Annotated[int | None, Field(default=None, nullable=True)]
+    contact: Annotated[str | None, Field(default=None, nullable=True)]
 
     form: Annotated[
-        Optional[ReportForm],
+        ReportForm | None,
         Field(default=None, sa_column=Column(JSON, nullable=True)),
     ]

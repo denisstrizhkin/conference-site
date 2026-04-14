@@ -1,10 +1,8 @@
-from typing import Optional
-
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import NoResultFound
-from sqlmodel import select, update, delete
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlmodel import delete, select, update
 
-from .models import Vote, Reports
+from .models import Reports, Vote
 
 
 class VoteRepository:
@@ -12,7 +10,7 @@ class VoteRepository:
         self._session = session
         self._dto = Vote
 
-    async def get_one(self, code: Optional[str] = None) -> Vote:
+    async def get_one(self, code: str | None = None) -> Vote:
         stmt = select(self._dto)
         if id:
             stmt = stmt.where(code == self._dto.code)
@@ -21,8 +19,8 @@ class VoteRepository:
         return self._dto.model_validate(user)
 
     async def get_one_or_none(
-        self, id: Optional[int] = None, email: Optional[str] = None
-    ) -> Optional[Vote]:
+        self, id: int | None = None, email: str | None = None
+    ) -> Vote | None:
         try:
             return await self.get_one(id, email)
         except NoResultFound:
@@ -35,9 +33,7 @@ class VoteRepository:
             self._dto.model_validate(user) for user in result.scalars().all()
         ]
 
-    async def create(
-        self, code: str, report: Optional[Reports] = None
-    ) -> Vote:
+    async def create(self, code: str, report: Reports | None = None) -> Vote:
         user = self._dto(code=code, report=report)
         self._session.add(user)
         await self._session.flush()

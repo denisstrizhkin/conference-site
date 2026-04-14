@@ -2,8 +2,8 @@ from fastapi import APIRouter
 from fastapi.responses import HTMLResponse
 
 from src.depends import TemplateRenderer
-from src.routers.user.schemas import UserContext
 from src.routers.auth.depends import CurrentUserOrNone
+from src.routers.user.schemas import UserContext
 
 index_router: APIRouter = APIRouter()
 

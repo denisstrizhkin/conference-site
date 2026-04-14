@@ -1,15 +1,15 @@
-from typing import Annotated, Optional
 from datetime import datetime, timedelta
+from typing import Annotated
 
+from fastapi import Depends, HTTPException, Request, status
+from jose import JWTError, jwt
 from passlib.context import CryptContext
-from jose import jwt, JWTError
-from fastapi import Depends, Request, HTTPException, status
 from pydantic import ValidationError
 
-from src.db import Session
-from src.settings import settings
-from src.routers.user.models import User, UserRole
 from src.controllers.user_controller import UserController, UserFilter
+from src.db import Session
+from src.routers.user.models import User, UserRole
+from src.settings import settings
 
 from .models import Token
 
@@ -27,7 +27,9 @@ class PassHasher:
 
 
 def create_access_token(id: int) -> tuple[str, int]:
-    expires = datetime.utcnow() + timedelta(minutes=settings.jwt_expire_minutes)
+    expires = datetime.utcnow() + timedelta(
+        minutes=settings.jwt_expire_minutes
+    )
     token = Token(id=id, expires=expires)
     to_encode = token.model_dump(mode="json")
     encoded_jwt = jwt.encode(
@@ -58,7 +60,9 @@ async def get_current_user(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Could not decode the token.",
         )
-    user = await UserController(session).get_one_or_none(UserFilter(id=token.id))
+    user = await UserController(session).get_one_or_none(
+        UserFilter(id=token.id)
+    )
     if user is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -73,7 +77,7 @@ CurrentUser = Annotated[User, Depends(get_current_user)]
 async def get_current_user_or_none(
     request: Request,
     session: Session,
-) -> Optional[User]:
+) -> User | None:
     try:
         return await get_current_user(request, session)
     except HTTPException as e:
@@ -86,7 +90,7 @@ CurrentUserOrNone = Annotated[User, Depends(get_current_user_or_none)]
 
 
 def allowed_id_or_roles(
-    current_user: User, user_id: Optional[int], roles: list[UserRole]
+    current_user: User, user_id: int | None, roles: list[UserRole]
 ):
     is_allowed = current_user.role in roles or current_user.id == user_id
     if not is_allowed:

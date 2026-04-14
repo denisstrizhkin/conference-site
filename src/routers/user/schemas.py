@@ -1,5 +1,4 @@
-from typing_extensions import Self
-from typing import Optional
+from typing import Self
 
 from fastapi import UploadFile
 from pydantic import BaseModel, model_validator
@@ -7,7 +6,7 @@ from pydantic import BaseModel, model_validator
 from src.routers.files.models import File
 from src.schemas import BaseContext
 
-from .models import User, UserRole, ReportType, ReportFormType
+from .models import ReportFormType, ReportType, User, UserRole
 
 
 class UserForm(BaseModel):
@@ -16,17 +15,17 @@ class UserForm(BaseModel):
     email: str
     surname: str
     name: str
-    patronymic: Optional[str] = None
+    patronymic: str | None = None
     organization: str
     year: int
     contact: str
 
     # Report Form
-    form_type: Optional[ReportFormType] = None
+    form_type: ReportFormType | None = None
 
     # Classical fields
-    report_name: Optional[str] = None
-    report_type: Optional[ReportType] = None
+    report_name: str | None = None
+    report_type: ReportType | None = None
 
     # Common flags
     flag_bio_phys: bool = False
@@ -37,12 +36,12 @@ class UserForm(BaseModel):
     flag_general_phys: bool = False
     flag_solid_body: bool = False
     flag_space_phys: bool = False
-    report_file: Optional[UploadFile] = None
+    report_file: UploadFile | None = None
 
     # Nonlinear fields
-    work_place: Optional[str] = None
-    supervisor: Optional[str] = None
-    expected_topic: Optional[str] = None
+    work_place: str | None = None
+    supervisor: str | None = None
+    expected_topic: str | None = None
 
     @model_validator(mode="after")
     def validate_form_type_fields(self) -> Self:
@@ -65,7 +64,7 @@ class UserForm(BaseModel):
 
 
 class UserContext(BaseContext):
-    current_user: Optional[User] = None
+    current_user: User | None = None
 
 
 class UsersContext(UserContext):
@@ -75,7 +74,7 @@ class UsersContext(UserContext):
 class UserFormContext(BaseContext):
     current_user: User
     user: User
-    report_file: Optional[File] = None
+    report_file: File | None = None
     roles: list[tuple[UserRole, str]] = []
 
     @model_validator(mode="after")

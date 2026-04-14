@@ -1,7 +1,5 @@
-from typing import Optional
-
-from pydantic import BaseModel
 from fastapi import UploadFile
+from pydantic import BaseModel
 
 from src.routers.user.schemas import UserContext
 
@@ -9,9 +7,12 @@ from .models import Reports
 
 
 class VoteFormContext(UserContext):
-    selected: Optional[Reports] = None
+    selected: Reports | None = None
     reports: list[tuple[Reports, str]] = [
-        (Reports.a, "Даниил Сенчук — Двухмагнонные моды антиферромагнетика MnF2"),
+        (
+            Reports.a,
+            "Даниил Сенчук — Двухмагнонные моды антиферромагнетика MnF2",
+        ),
         (
             Reports.b,
             "Ангелина Шигарова (СПбПУ) — Реализация инструмента "
@@ -45,9 +46,9 @@ class VoteFormContext(UserContext):
         ),
         (
             Reports.h,
-                "Анастасия Малевская — Моделирование вольт-амперных "
-                "характеристик и оптимизация фотоэлектрических реобразователей "
-                "с точечным тыльным контактом"
+            "Анастасия Малевская — Моделирование вольт-амперных "
+            "характеристик и оптимизация фотоэлектрических реобразователей "
+            "с точечным тыльным контактом",
         ),
         (
             Reports.i,
@@ -58,7 +59,10 @@ class VoteFormContext(UserContext):
             "Ксения Балашова (СПбПУ) — Исследование оптимизации процесса "
             "подготовки катализатора для выращивания углеродных нанотрубок",
         ),
-        (Reports.k, "Дмитрий Бабин — Неаффинные деформации в аморфных материалах"),
+        (
+            Reports.k,
+            "Дмитрий Бабин — Неаффинные деформации в аморфных материалах",
+        ),
         (Reports.l, "Наталья Ионова (СПбГУ) — Любительская астрофотография"),
     ]
 

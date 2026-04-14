@@ -1,21 +1,25 @@
 from typing import Annotated
 
-from fastapi import APIRouter, status, Form
+from fastapi import APIRouter, Form, status
 from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlalchemy.exc import IntegrityError
 
-from src.schemas import BaseContext
-from src.depends import TemplateRenderer
-from src.controllers.user_controller import UserControllerDep, UserNew, UserFilter
-
-from .schemas import (
-    RegisterForm,
-    LoginForm,
+from src.controllers.user_controller import (
+    UserControllerDep,
+    UserFilter,
+    UserNew,
 )
+from src.depends import TemplateRenderer
+from src.schemas import BaseContext
 from src.settings import settings
+
 from .depends import (
-    create_access_token,
     PassHasher,
+    create_access_token,
+)
+from .schemas import (
+    LoginForm,
+    RegisterForm,
 )
 
 auth_router = APIRouter(prefix="/auth")
@@ -37,7 +41,8 @@ async def register(
     try:
         await user_controller.create(
             UserNew(
-                email=form.email, password=PassHasher.get_password_hash(form.password)
+                email=form.email,
+                password=PassHasher.get_password_hash(form.password),
             )
         )
     except IntegrityError:
@@ -46,7 +51,9 @@ async def register(
             BaseContext(error="Такой пользователь уже сущевствует."),
         )
 
-    return RedirectResponse(url="/auth/login", status_code=status.HTTP_303_SEE_OTHER)
+    return RedirectResponse(
+        url="/auth/login", status_code=status.HTTP_303_SEE_OTHER
+    )
 
 
 @auth_router.get("/login", response_class=HTMLResponse)

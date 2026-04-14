@@ -2,10 +2,9 @@ import urllib
 
 from fastapi import APIRouter, Request, Response
 
+from src.controllers.user_controller import UserControllerDep
 from src.routers.auth.depends import CurrentUser, allowed_id_or_roles
 from src.routers.user.models import UserRole
-
-from src.controllers.user_controller import UserControllerDep
 
 file_router = APIRouter(prefix="/files")
 

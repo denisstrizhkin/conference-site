@@ -1,9 +1,9 @@
-from typing import Optional, Annotated
+from typing import Annotated
 
-from sqlalchemy.ext.asyncio import AsyncSession
+from fastapi import Depends, HTTPException, status
 from sqlalchemy.exc import NoResultFound
-from fastapi import HTTPException, status, Depends
-from sqlmodel import select, delete
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlmodel import delete, select
 
 from src.db import Session
 from src.routers.files.models import File
@@ -43,7 +43,7 @@ class FileController:
     async def create(self, file: File) -> File:
         return await self._repo.create(file)
 
-    async def get_one_or_none(self, id: int) -> Optional[File]:
+    async def get_one_or_none(self, id: int) -> File | None:
         try:
             return await self._repo.get_one(id)
         except NoResultFound:

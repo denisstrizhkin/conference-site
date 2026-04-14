@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Annotated, Optional
+from typing import Annotated
 
 from fastapi import Depends, Request
 from fastapi.templating import Jinja2Templates
@@ -19,7 +19,7 @@ class Renderer:
         self._request = request
         self._templates = templates
 
-    def render(self, name: str, context: Optional[BaseContext] = None):
+    def render(self, name: str, context: BaseContext | None = None):
         if context is None:
             context = BaseContext()
         return self._templates.TemplateResponse(

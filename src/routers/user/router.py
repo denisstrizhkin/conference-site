@@ -1,25 +1,25 @@
+import urllib
 from io import BytesIO
 from typing import Annotated
-import urllib
 
 from fastapi import APIRouter, Form
 from fastapi.responses import HTMLResponse, StreamingResponse
 from openpyxl import Workbook
 
+from src.controllers.user_controller import UserControllerDep, UserFilter
 from src.depends import TemplateRenderer
 from src.routers.auth.depends import (
+    CurrentUser,
     allowed_id_or_roles,
     allowed_roles,
 )
-from src.controllers.user_controller import UserControllerDep, UserFilter
-from src.routers.auth.depends import CurrentUser
 
+from .models import UserRole
 from .schemas import (
+    UserForm,
     UserFormContext,
     UsersContext,
-    UserForm,
 )
-from .models import UserRole
 
 user_router = APIRouter(prefix="/user")
 
@@ -32,10 +32,14 @@ async def get_account(
     current_user: CurrentUser,
 ):
     allowed_id_or_roles(current_user, user_id, [UserRole.admin])
-    user, file = await user_controller.get_user_with_file(UserFilter(id=user_id))
+    user, file = await user_controller.get_user_with_file(
+        UserFilter(id=user_id)
+    )
     return templates.render(
         "form/reg.jinja",
-        UserFormContext(current_user=current_user, user=user, report_file=file),
+        UserFormContext(
+            current_user=current_user, user=user, report_file=file
+        ),
     )
 
 
@@ -48,7 +52,7 @@ async def post_account(
     form: Annotated[UserForm, Form()],
 ):
     allowed_id_or_roles(current_user, user_id, [UserRole.admin])
-    user, file = await user_controller.update_from_user_form(current_user, form)
+    user, file = await user_controller.update_from_user_form(user_id, form)
     return templates.render(
         "form/reg.jinja",
         context=UserFormContext(
@@ -170,7 +174,7 @@ async def generate_excel(
     buffer.seek(0)
 
     file_name = urllib.parse.quote(
-        "Участники 2025 студенческой конференции.xlsx".encode("utf8")
+        "Участники 2025 студенческой конференции.xlsx".encode()
     )
     # Return the buffer content as a StreamingResponse
     return StreamingResponse(

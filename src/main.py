@@ -1,21 +1,19 @@
-from typing import Optional
 from pathlib import Path
 
-from fastapi import FastAPI, status, HTTPException, Request
+from fastapi import FastAPI, HTTPException, Request, status
 from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 
-from src.settings import settings
-from src.schemas import ErrorContext
 from src.depends import get_templates
-
+from src.routers.auth.router import auth_router
+from src.routers.files.router import file_router
 from src.routers.index import index_router
 from src.routers.user.router import user_router
-from src.routers.files.router import file_router
-from src.routers.auth.router import auth_router
 from src.routers.vote.router import vote_router
+from src.schemas import ErrorContext
+from src.settings import settings
 
-openapi_url: Optional[str] = None
+openapi_url: str | None = None
 if settings.show_docs:
     openapi_url = "/openapi.json"
 
@@ -70,4 +68,6 @@ async def internal_exception_handler(request: Request, exc: HTTPException):
 
 @app.exception_handler(status.HTTP_401_UNAUTHORIZED)
 async def unauthorized_exception_handler(request: Request, exc: HTTPException):
-    return RedirectResponse(url="/auth/login", status_code=status.HTTP_303_SEE_OTHER)
+    return RedirectResponse(
+        url="/auth/login", status_code=status.HTTP_303_SEE_OTHER
+    )
