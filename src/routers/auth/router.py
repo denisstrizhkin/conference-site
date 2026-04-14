@@ -42,7 +42,7 @@ async def register(
         await user_controller.create(
             UserNew(
                 email=form.email,
-                password=PassHasher.get_password_hash(form.password),
+                hashed_password=PassHasher.get_password_hash(form.password),
             )
         )
     except IntegrityError:

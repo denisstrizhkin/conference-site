@@ -1,7 +1,7 @@
 """more user roles
 
 Revision ID: 0579d861c85e
-Revises: deac2e879b0d
+Revises: ef00b4f232c1
 Create Date: 2025-04-04 13:54:43.925739
 
 """
@@ -15,7 +15,7 @@ import sqlmodel
 
 # revision identifiers, used by Alembic.
 revision: str = "0579d861c85e"
-down_revision: Union[str, None] = "deac2e879b0d"
+down_revision: Union[str, None] = "ef00b4f232c1"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

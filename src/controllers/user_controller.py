@@ -6,7 +6,7 @@ from sqlalchemy.exc import NoResultFound
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import delete, select, update
 
-from src.controllers.file_controller import FileController
+from src.controllers.file_controller import FileController, FileControllerDep
 from src.db import Session
 from src.routers.files.models import File
 from src.routers.user.models import ReportForm, User, UserRole
@@ -17,6 +17,7 @@ from src.routers.user.schemas import UserForm
 class UserNew:
     email: str
     hashed_password: str
+    role: UserRole = UserRole.basic
 
 
 @dataclass
@@ -30,7 +31,11 @@ class UserRepo:
         self._session = session
 
     async def create(self, user_new: UserNew) -> User:
-        user = User(email=user_new.email, password=user_new.hashed_password)
+        user = User(
+            email=user_new.email,
+            password=user_new.hashed_password,
+            role=user_new.role,
+        )
         self._session.add(user)
         await self._session.flush()
         await self._session.refresh(user)
@@ -64,9 +69,9 @@ class UserRepo:
 
 
 class UserController:
-    def __init__(self, session: AsyncSession):
+    def __init__(self, session: AsyncSession, file_controller: FileController):
         self._user_repo = UserRepo(session)
-        self._file_controller = FileController(session)
+        self._file_controller = file_controller
 
     async def create(self, user_new: UserNew) -> User:
         return await self._user_repo.create(user_new)
@@ -109,6 +114,7 @@ class UserController:
         file = await self.get_user_file_or_none(user)
         if file is None:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+        return file
 
     async def get_user_with_file(
         self, user_filter: UserFilter
@@ -189,8 +195,10 @@ class UserController:
         return report_form, file
 
 
-def get_user_controller(session: Session) -> UserController:
-    return UserController(session)
+def get_user_controller(
+    session: Session, file_controller: FileControllerDep
+) -> UserController:
+    return UserController(session, file_controller)
 
 
 UserControllerDep = Annotated[UserController, Depends(get_user_controller)]

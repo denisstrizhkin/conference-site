@@ -13,8 +13,7 @@ from src.routers.user.models import User
 from src.routers.files.models import File
 from src.routers.vote.models import Vote
 
-print(settings.model_dump())
-
+print(settings)
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config

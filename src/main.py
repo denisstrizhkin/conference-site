@@ -1,3 +1,4 @@
+from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException, Request, status
@@ -13,11 +14,49 @@ from src.routers.vote.router import vote_router
 from src.schemas import ErrorContext
 from src.settings import settings
 
+
+async def setup_admin_user():
+    from src.controllers.file_controller import FileController
+    from src.controllers.user_controller import (
+        UserController,
+        UserFilter,
+        UserNew,
+    )
+    from src.routers.auth.depends import PassHasher
+    from src.routers.user.models import UserRole
+
+    from .db import get_session
+
+    password = settings.admin_password
+    hashed_password = PassHasher.get_password_hash(password)
+    async for session in get_session():
+        user_controller = UserController(session, FileController(session))
+        user = await user_controller.get_one_or_none(UserFilter(email="admin"))
+        if user is None:
+            await user_controller.create(
+                UserNew(
+                    email="admin",
+                    hashed_password=hashed_password,
+                    role=UserRole.admin,
+                )
+            )
+        else:
+            await user_controller.update(
+                user.model_copy(update={"password": hashed_password})
+            )
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    await setup_admin_user()
+    yield
+
+
 openapi_url: str | None = None
 if settings.show_docs:
     openapi_url = "/openapi.json"
 
-app = FastAPI(openapi_url=openapi_url)
+app = FastAPI(openapi_url=openapi_url, lifespan=lifespan)
 app.mount(
     "/static",
     StaticFiles(directory=Path(__file__).parent / "static"),
