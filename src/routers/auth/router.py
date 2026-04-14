@@ -4,10 +4,9 @@ from fastapi import APIRouter, status, Form
 from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlalchemy.exc import IntegrityError
 
-from src.routers.user.repo import UserRepository
 from src.schemas import BaseContext
-from src.db import Session
 from src.depends import TemplateRenderer
+from src.controllers.user_controller import UserControllerDep, UserNew, UserFilter
 
 from .schemas import (
     RegisterForm,
@@ -33,11 +32,13 @@ async def register_form(templates: TemplateRenderer):
 async def register(
     templates: TemplateRenderer,
     form: Annotated[RegisterForm, Form()],
-    session: Session,
+    user_controller: UserControllerDep,
 ):
     try:
-        await UserRepository(session).create(
-            form.email, PassHasher.get_password_hash(form.password)
+        await user_controller.create(
+            UserNew(
+                email=form.email, password=PassHasher.get_password_hash(form.password)
+            )
         )
     except IntegrityError:
         return templates.render(
@@ -45,9 +46,7 @@ async def register(
             BaseContext(error="Такой пользователь уже сущевствует."),
         )
 
-    return RedirectResponse(
-        url="/auth/login", status_code=status.HTTP_303_SEE_OTHER
-    )
+    return RedirectResponse(url="/auth/login", status_code=status.HTTP_303_SEE_OTHER)
 
 
 @auth_router.get("/login", response_class=HTMLResponse)
@@ -61,7 +60,7 @@ async def login_form(templates: TemplateRenderer):
 async def login(
     templates: TemplateRenderer,
     form: Annotated[LoginForm, Form()],
-    session: Session,
+    user_controller: UserControllerDep,
 ):
     def error_response(error: str) -> HTMLResponse:
         return templates.render(
@@ -69,7 +68,7 @@ async def login(
             BaseContext(error=error),
         )
 
-    user = await UserRepository(session).get_one_or_none(email=form.email)
+    user = await user_controller.get_one_or_none(UserFilter(email=form.email))
     if user is None:
         return error_response("Такого пользователя не существует.")
     if not PassHasher.verify_password(form.password, user.password):
