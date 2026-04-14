@@ -1,27 +1,31 @@
+FROM python:3.14-alpine AS builder
+
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /bin/uv
+
+WORKDIR /app
+ENV UV_COMPILE_BYTECODE=1
+ENV UV_LINK_MODE=copy
+
+RUN --mount=type=cache,target=/root/.cache/uv \
+    --mount=type=bind,source=uv.lock,target=uv.lock \
+    --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
+    uv sync --frozen --no-install-project --no-dev
+
 FROM python:3.14-alpine
 
-# The installer requires curl (and certificates) to download the release archive
-RUN apk add --no-cache curl
-
-# Download the latest installer
-ADD https://astral.sh/uv/install.sh /uv-installer.sh
-
-# Run the installer then remove it
-RUN sh /uv-installer.sh && rm /uv-installer.sh
-
-# Ensure the installed binary is on the `PATH`
-ENV PATH="/root/.local/bin/:$PATH"
-
-# Copy the project into the image
 WORKDIR /app
-COPY pyproject.toml .
-COPY uv.lock .
-COPY settings.toml .
+
+COPY --from=builder /app/.venv /app/.venv
+
 COPY alembic.ini .
-RUN uv sync --frozen
+COPY src ./src
+COPY alembic ./alembic
 
-ADD src ./src
-ADD alembic ./alembic
+ENV PATH="/app/.venv/bin:$PATH"
 
-# Run the web app
-CMD ["/app/.venv/bin/fastapi", "run", "/app/src/main.py", "--port", "80", "--host", "0.0.0.0"]
+RUN adduser -D appuser
+USER appuser
+
+EXPOSE 80
+
+CMD ["fastapi", "run", "src/main.py", "--port", "80", "--host", "0.0.0.0"]
