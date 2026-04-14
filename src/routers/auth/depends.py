@@ -55,11 +55,11 @@ async def get_current_user(
             algorithms=[settings.jwt_algorithm],
         )
         token = Token.model_validate(payload)
-    except (JWTError, ValidationError):
+    except (JWTError, ValidationError) as err:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Could not decode the token.",
-        )
+        ) from err
     user = await UserController(session).get_one_or_none(
         UserFilter(id=token.id)
     )
