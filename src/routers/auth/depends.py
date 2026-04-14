@@ -8,8 +8,8 @@ from pydantic import ValidationError
 
 from src.db import Session
 from src.settings import settings
-from src.routers.user.models import User
-from src.routers.user.repo import UserRepository
+from src.routers.user.models import User, UserRole
+from src.controllers.user_controller import UserController, UserFilter
 
 from .models import Token
 
@@ -27,9 +27,7 @@ class PassHasher:
 
 
 def create_access_token(id: int) -> tuple[str, int]:
-    expires = datetime.utcnow() + timedelta(
-        minutes=settings.jwt_expire_minutes
-    )
+    expires = datetime.utcnow() + timedelta(minutes=settings.jwt_expire_minutes)
     token = Token(id=id, expires=expires)
     to_encode = token.model_dump(mode="json")
     encoded_jwt = jwt.encode(
@@ -48,7 +46,6 @@ async def get_current_user(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="No access token provided.",
         )
-
     try:
         payload = jwt.decode(
             access_token,
@@ -61,14 +58,12 @@ async def get_current_user(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Could not decode the token.",
         )
-
-    user = await UserRepository(session).get_one(id=token.id)
+    user = await UserController(session).get_one_or_none(UserFilter(id=token.id))
     if user is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="User does not exist.",
         )
-
     return user
 
 
@@ -88,3 +83,19 @@ async def get_current_user_or_none(
 
 
 CurrentUserOrNone = Annotated[User, Depends(get_current_user_or_none)]
+
+
+def allowed_id_or_roles(
+    current_user: User, user_id: Optional[int], roles: list[UserRole]
+):
+    is_allowed = current_user.role in roles or current_user.id == user_id
+    if not is_allowed:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
+
+
+def allowed_id(current_user: User, user_id: int):
+    allowed_id_or_roles(current_user, user_id, [])
+
+
+def allowed_roles(current_user: User, roles: list[UserRole]):
+    allowed_id_or_roles(current_user, None, roles)

@@ -1,12 +1,11 @@
 import urllib
 
-from fastapi import APIRouter, Request, Response, HTTPException, status
+from fastapi import APIRouter, Request, Response
 
-from src.db import Session
+from src.routers.auth.depends import CurrentUser, allowed_id_or_roles
 from src.routers.user.models import UserRole
-from src.routers.auth.depends import CurrentUser
 
-from .repo import FileRepository
+from src.controllers.user_controller import UserControllerDep
 
 file_router = APIRouter(prefix="/files")
 
@@ -16,22 +15,10 @@ async def download_file(
     file_id: int,
     request: Request,
     current_user: CurrentUser,
-    session: Session,
+    user_controller: UserControllerDep,
 ):
-    if current_user.role != UserRole.admin:
-        if current_user.form is None:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-            )
-        if current_user.form.file_id != file_id:
-            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
-
-    file = await FileRepository(session).get_one_or_none(file_id)
-    if file is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-        )
-
+    allowed_id_or_roles(current_user, current_user.id, [UserRole.admin])
+    file = await user_controller.get_file(current_user, file_id)
     file_name = urllib.parse.quote(file.name.encode("utf8"))
     return Response(
         content=file.content,

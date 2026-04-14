@@ -35,7 +35,17 @@
                                 Не участвует
                             {% endif %}
                         </td>
-                        <td class="text-wrap text-break rep-name-col">{{ user.form.report_name|default('---', true) }}</td>
+                        <td class="text-wrap text-break rep-name-col">
+                            {% if user.form %}
+                                {% if user.form.form_type == "nonlinear" %}
+                                    {{ user.form.expected_topic|default('---', true) }}
+                                {% else %}
+                                    {{ user.form.report_name|default('---', true) }}
+                                {% endif %}
+                            {% else %}
+                                ---
+                            {% endif %}
+                        </td>
                         <td>
                             {% if user.form.file_id %}
                                 <a href="/files/{{ user.form.file_id }}">Скачать</a>

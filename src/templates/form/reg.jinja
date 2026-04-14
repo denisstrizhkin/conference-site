@@ -104,16 +104,61 @@
                 {% endif %}
                 <div id="reportFormParent">
                     <div id="reportForm">
-                        <div class="col-12">
-                            <label class="form-label">
-                                <strong>Название доклада:</strong>
-                                <input type="text"
-                                       class="form-control"
-                                       name="report_name"
-                                       value="{{ user.form.report_name|default('', true) }}"
-                                       required>
-                            </label>
-                            <div class="invalid-feedback">Это поле необходимо заполнить</div>
+                        <p class="fs-6 mb-3 mt-4">
+                            <strong>Тип доклада:</strong>
+                        </p>
+                        <select class="form-select mb-5" name="form_type" id="selectedFormType">
+                            <option value="classical" {% if not user.form or user.form.form_type == "classical" %}selected{% endif %}>Классический</option>
+                            <option value="nonlinear" {% if user.form and user.form.form_type == "nonlinear" %}selected{% endif %}>Нелинейный</option>
+                        </select>
+                        <div id="classicalFields">
+                            <div class="col-12">
+                                <label class="form-label">
+                                    <strong>Название доклада:</strong>
+                                    <input type="text"
+                                           class="form-control"
+                                           name="report_name"
+                                           id="reportNameInput"
+                                           value="{{ user.form.report_name|default('', true) }}"
+                                           required>
+                                </label>
+                                <div class="invalid-feedback">Это поле необходимо заполнить</div>
+                            </div>
+                        </div>
+                        <div id="nonlinearFields" class="d-none">
+                            <div class="col-12">
+                                <label class="form-label">
+                                    <strong>Где работаешь (место работы):</strong>
+                                    <input type="text"
+                                           class="form-control"
+                                           name="work_place"
+                                           id="workPlaceInput"
+                                           value="{{ user.form.work_place|default('', true) }}">
+                                </label>
+                                <div class="invalid-feedback">Это поле необходимо заполнить</div>
+                            </div>
+                            <div class="col-12 mt-3">
+                                <label class="form-label">
+                                    <strong>Научный руководитель:</strong>
+                                    <input type="text"
+                                           class="form-control"
+                                           name="supervisor"
+                                           id="supervisorInput"
+                                           value="{{ user.form.supervisor|default('', true) }}">
+                                </label>
+                                <div class="invalid-feedback">Это поле необходимо заполнить</div>
+                            </div>
+                            <div class="col-12 mt-3">
+                                <label class="form-label">
+                                    <strong>Предполагаемая тема (не финальная):</strong>
+                                    <input type="text"
+                                           class="form-control"
+                                           name="expected_topic"
+                                           id="expectedTopicInput"
+                                           value="{{ user.form.expected_topic|default('', true) }}">
+                                </label>
+                                <div class="invalid-feedback">Это поле необходимо заполнить</div>
+                            </div>
                         </div>
                         <p class="fs-6 mb-3 mt-4">
                             <strong>Область научного знания, к которой относится тема Вашего доклада:</strong>
@@ -192,9 +237,10 @@
                                 </label>
                             </div>
                         </div>
-                        <p class="fs-6 mb-3 mt-4">
-                            <strong>Ваш доклад оригинальный или научно-популярный?</strong>
-                        </p>
+                        <div id="classicalRadio">
+                            <p class="fs-6 mb-3 mt-4">
+                                <strong>Ваш доклад оригинальный или научно-популярный?</strong>
+                            </p>
                         <div class="form-check border border-2 rounded">
                             <label class="form-check-label p-2">
                                 <input class="form-check-input"
@@ -215,8 +261,9 @@
                                 Научно-популярный, интересный сюжет/эффект/устройство
                             </label>
                         </div>
+                        </div>
                         <p class="fs-6 mt-4">
-                            <strong>Файл с OnePager:</strong>
+                            <strong>Файл с OnePager (опционально для нелинейного доклада):</strong>
                         </p>
                         <p class="fs-6 pb-2">
                             Ваш OnePager, оформленный в соответствии с 
@@ -330,9 +377,55 @@ function updateFile() {
     });
 }
 
+function updateFormType() {
+    const formType = document.getElementById("selectedFormType");
+    if (!formType) return;
+
+    const classicalFields = document.getElementById("classicalFields");
+    const classicalRadio = document.getElementById("classicalRadio");
+    const nonlinearFields = document.getElementById("nonlinearFields");
+
+    const reqC = ["reportNameInput"];
+    const reqNL = ["workPlaceInput", "supervisorInput", "expectedTopicInput"];
+
+    const update = function() {
+        const val = formType.value;
+        if (val === "classical") {
+            if (classicalFields) classicalFields.classList.remove("d-none");
+            if (classicalRadio) classicalRadio.classList.remove("d-none");
+            if (nonlinearFields) nonlinearFields.classList.add("d-none");
+
+            reqC.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.setAttribute("required", "");
+            });
+            reqNL.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.removeAttribute("required");
+            });
+        } else {
+            if (classicalFields) classicalFields.classList.add("d-none");
+            if (classicalRadio) classicalRadio.classList.add("d-none");
+            if (nonlinearFields) nonlinearFields.classList.remove("d-none");
+
+            reqC.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.removeAttribute("required");
+            });
+            reqNL.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.setAttribute("required", "");
+            });
+        }
+    };
+    formType.addEventListener("change", update);
+    update();
+}
+
 // Wait for DOM to load
 document.addEventListener("DOMContentLoaded", function () {
     updateForm();
+    updateFormType();
 });
     </script>
 {% endblock %}

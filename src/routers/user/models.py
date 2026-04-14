@@ -10,9 +10,16 @@ class ReportType(StrEnum):
     scipop = auto()
 
 
+class ReportFormType(StrEnum):
+    classical = auto()
+    nonlinear = auto()
+
+
 class ReportForm(BaseModel):
-    report_name: str
-    report_type: ReportType = Field(default=ReportType.original)
+    form_type: ReportFormType = Field(default=ReportFormType.classical)
+
+    report_name: Optional[str] = None
+    report_type: Optional[ReportType] = None
 
     flag_bio_phys: bool
     flag_comp_sci: bool
@@ -23,7 +30,11 @@ class ReportForm(BaseModel):
     flag_solid_body: bool
     flag_space_phys: bool
 
-    file_id: int
+    file_id: Optional[int] = None
+
+    work_place: Optional[str] = None
+    supervisor: Optional[str] = None
+    expected_topic: Optional[str] = None
 
 
 class UserRole(StrEnum):
