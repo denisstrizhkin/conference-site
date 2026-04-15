@@ -163,7 +163,7 @@ class UserController:
                 await self._file_controller.delete(file.id)
             return None, None
 
-        if form.report_file is not None:
+        if form.report_file is not None and form.report_file.filename:
             if file is not None:
                 await self._file_controller.delete(file.id)
             content = await form.report_file.read()
