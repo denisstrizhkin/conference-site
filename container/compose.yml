@@ -1,11 +1,14 @@
 services:
-  app:
-    image: ghcr.io/strizhkindenis/conference-site:sha-8ab71e3
+  conference-site:
+    build:
+      context: ..
+      dockerfile: container/Containerfile
+    image: ghcr.io/strizhkindenis/conference-site:main
     restart: always
     ports:
       - "8000:8000"
     volumes:
-      - data:/app/data
+      - data:/app/data:U
     environment:
       - JWT_SECRET_FILE=/run/secrets/conference_jwt_secret
       - ADMIN_PASSWORD_FILE=/run/secrets/conference_admin_password

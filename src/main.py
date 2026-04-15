@@ -18,7 +18,7 @@ from src.settings import settings
 
 
 def run_migrations():
-    alembic_cfg = Config("alembic.ini")
+    alembic_cfg = Config(Path(__file__).parent.parent / "alembic.ini")
     command.upgrade(alembic_cfg, "head")
 
 
@@ -56,6 +56,7 @@ async def setup_admin_user():
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     import asyncio
+
     await asyncio.to_thread(run_migrations)
     await setup_admin_user()
     yield
