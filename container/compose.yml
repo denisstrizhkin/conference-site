@@ -1,0 +1,30 @@
+services:
+  app:
+    image: ghcr.io/strizhkindenis/conference-site:sha-8ab71e3
+    restart: always
+    ports:
+      - "8000:8000"
+    volumes:
+      - data:/app/data
+    environment:
+      - JWT_SECRET_FILE=/run/secrets/conference_jwt_secret
+      - ADMIN_PASSWORD_FILE=/run/secrets/conference_admin_password
+      - ECHO_SQL=False
+      - SHOW_DOCS=False
+      - SECURE_COOKIES=True
+      - DB_URI=sqlite+aiosqlite:////app/data/data.db
+      - JWT_ALGORITHM=HS256
+      - JWT_EXPIRE_MINUTES=30
+    secrets:
+      - conference_jwt_secret
+      - conference_admin_password
+
+
+secrets:
+  conference_jwt_secret:
+    external: true
+  conference_admin_password:
+    external: true
+
+volumes:
+  data:

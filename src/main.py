@@ -1,10 +1,12 @@
 from contextlib import asynccontextmanager
 from pathlib import Path
 
+from alembic.config import Config
 from fastapi import FastAPI, HTTPException, Request, status
 from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 
+from alembic import command
 from src.depends import get_templates
 from src.routers.auth.router import auth_router
 from src.routers.files.router import file_router
@@ -13,6 +15,11 @@ from src.routers.user.router import user_router
 from src.routers.vote.router import vote_router
 from src.schemas import ErrorContext
 from src.settings import settings
+
+
+def run_migrations():
+    alembic_cfg = Config("alembic.ini")
+    command.upgrade(alembic_cfg, "head")
 
 
 async def setup_admin_user():
@@ -48,6 +55,7 @@ async def setup_admin_user():
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    run_migrations()
     await setup_admin_user()
     yield
 
