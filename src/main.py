@@ -55,7 +55,8 @@ async def setup_admin_user():
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    run_migrations()
+    import asyncio
+    await asyncio.to_thread(run_migrations)
     await setup_admin_user()
     yield
 
