@@ -103,15 +103,21 @@
                     <a class="btn btn-primary" href="/vote/admin">Голосование</a>
                 {% endif %}
                 <div id="reportFormParent">
-                    <div id="reportForm">
+                    <fieldset id="reportFields" class="border-0 p-0 m-0">
                         <p class="fs-6 mb-3 mt-4">
                             <strong>Тип доклада:</strong>
                         </p>
                         <select class="form-select mb-5" name="form_type" id="selectedFormType">
-                            <option value="classical" {% if not user.form or user.form.form_type == "classical" %}selected{% endif %}>Классический</option>
-                            <option value="nonlinear" {% if user.form and user.form.form_type == "nonlinear" %}selected{% endif %}>Нелинейный</option>
+                            <option value="classical"
+                                    {% if not user.form or user.form.form_type == "classical" %}selected{% endif %}>
+                                Классический
+                            </option>
+                            <option value="nonlinear"
+                                    {% if user.form and user.form.form_type == "nonlinear" %}selected{% endif %}>
+                                Нелинейный
+                            </option>
                         </select>
-                        <div id="classicalFields">
+                        <fieldset id="classicalFields" class="border-0 p-0 m-0">
                             <div class="col-12">
                                 <label class="form-label">
                                     <strong>Название доклада:</strong>
@@ -124,8 +130,8 @@
                                 </label>
                                 <div class="invalid-feedback">Это поле необходимо заполнить</div>
                             </div>
-                        </div>
-                        <div id="nonlinearFields" class="d-none">
+                        </fieldset>
+                        <fieldset id="nonlinearFields" class="border-0 p-0 m-0">
                             <div class="col-12">
                                 <label class="form-label">
                                     <strong>Где работаешь (место работы):</strong>
@@ -159,7 +165,7 @@
                                 </label>
                                 <div class="invalid-feedback">Это поле необходимо заполнить</div>
                             </div>
-                        </div>
+                        </fieldset>
                         <p class="fs-6 mb-3 mt-4">
                             <strong>Область научного знания, к которой относится тема Вашего доклада:</strong>
                         </p>
@@ -237,36 +243,36 @@
                                 </label>
                             </div>
                         </div>
-                        <div id="classicalRadio">
+                        <fieldset id="classicalRadio" class="border-0 p-0 m-0">
                             <p class="fs-6 mb-3 mt-4">
                                 <strong>Ваш доклад оригинальный или научно-популярный?</strong>
                             </p>
-                        <div class="form-check border border-2 rounded">
-                            <label class="form-check-label p-2">
-                                <input class="form-check-input"
-                                       type="radio"
-                                       name="report_type"
-                                       value="original"
-                                       {% if user.form.report_type == "original" %}checked{% endif %}>
-                                Оригинальный, собственное исследование (с научной новизной)
-                            </label>
-                        </div>
-                        <div class="form-check border border-2 rounded">
-                            <label class="form-check-label p-2">
-                                <input class="form-check-input"
-                                       type="radio"
-                                       name="report_type"
-                                       value="scipop"
-                                       {% if user.form.report_type == "scipop" %}checked{% endif %}>
-                                Научно-популярный, интересный сюжет/эффект/устройство
-                            </label>
-                        </div>
-                        </div>
+                            <div class="form-check border border-2 rounded">
+                                <label class="form-check-label p-2">
+                                    <input class="form-check-input"
+                                           type="radio"
+                                           name="report_type"
+                                           value="original"
+                                           {% if user.form.report_type == "original" %}checked{% endif %}>
+                                    Оригинальный, собственное исследование (с научной новизной)
+                                </label>
+                            </div>
+                            <div class="form-check border border-2 rounded">
+                                <label class="form-check-label p-2">
+                                    <input class="form-check-input"
+                                           type="radio"
+                                           name="report_type"
+                                           value="scipop"
+                                           {% if user.form.report_type == "scipop" %}checked{% endif %}>
+                                    Научно-популярный, интересный сюжет/эффект/устройство
+                                </label>
+                            </div>
+                        </fieldset>
                         <p class="fs-6 mt-4">
                             <strong>Файл с OnePager (опционально для нелинейного доклада):</strong>
                         </p>
                         <p class="fs-6 pb-2">
-                            Ваш OnePager, оформленный в соответствии с 
+                            Ваш OnePager, оформленный в соответствии с
                             <a href="/static/appl_templates/abstract.docx">шаблоном</a>.
                         </p>
                         <div class="mt-4">
@@ -296,7 +302,7 @@
                                class="btn btn-primary mt-1"
                                download>Скачать</a>
                         {% endif %}
-                    </div>
+                    </fieldset>
                 </div>
                 <hr class="my-5">
                 <div class="d-flex justify-content-center mt-3">
@@ -318,7 +324,9 @@
     {% elif current_user.role == "admin" and user.role != "admin" %}
         <div class="d-flex justify-content-center mt-3">
             <div class="col-md-8 text-center">
-                <form action="/user/{{ user.id }}/delete" method="post" onsubmit="return confirm('Вы уверены, что хотите удалить этого пользователя?');">
+                <form action="/user/{{ user.id }}/delete"
+                      method="post"
+                      onsubmit="return confirm('Вы уверены, что хотите удалить этого пользователя?');">
                     <button type="submit" class="btn btn-outline-danger btn-lg">
                         <i class="bi bi-trash"></i> Удалить пользователя
                     </button>
@@ -329,103 +337,50 @@
     <script>
 "use strict";
 
-function updateForm() {
-    const selectedRole = document.getElementById("selectedRole");
-    const reportFormParent = document.getElementById(
-        "reportFormParent"
-    );
-    let reportFormDeleted = false;
-    let reportFormSaved = null;
-    const deleteReportForm = function () {
-        if (reportFormDeleted === false) {
-            const reportForm = document.getElementById("reportForm");
-            reportFormSaved = reportForm.cloneNode(true);
-            reportForm.remove();
-            reportFormDeleted = true;
-        }
-    };
-    const restoreReportForm = function () {
-        if (reportFormDeleted === true) {
-            reportFormParent.appendChild(reportFormSaved);
-            reportFormDeleted = false;
-        }
-    };
-    // Add change event listener
-    selectedRole.addEventListener("change", function (e) {
-        if (e.target.value === "participant") {
-            restoreReportForm();
-            updateFile();
-        } else {
-            deleteReportForm();
-        }
-    });
-    // Trigger change event immediately in case there's a default value
-    deleteReportForm();
-    selectedRole.dispatchEvent(new Event("change"));
-}
-
-function updateFile() {
-    const reportFileInput = document.getElementById("reportFileInput");
-    const reportFileName = document.getElementById("reportFileName");
-    reportFileInput.addEventListener("change", function (e) {
-        const fileName = (
-            e.target.files[0]
-            ? e.target.files[0].name
-            : "No file chosen"
-        );
-        reportFileName.textContent = fileName;
-    });
-}
-
-function updateFormType() {
-    const formType = document.getElementById("selectedFormType");
-    if (!formType) return;
-
+function initUpdateFormType() {
+    const selectedFormType = document.getElementById("selectedFormType");
     const classicalFields = document.getElementById("classicalFields");
     const classicalRadio = document.getElementById("classicalRadio");
     const nonlinearFields = document.getElementById("nonlinearFields");
-
-    const reqC = ["reportNameInput"];
-    const reqNL = ["workPlaceInput", "supervisorInput", "expectedTopicInput"];
-
-    const update = function() {
-        const val = formType.value;
-        if (val === "classical") {
-            if (classicalFields) classicalFields.classList.remove("d-none");
-            if (classicalRadio) classicalRadio.classList.remove("d-none");
-            if (nonlinearFields) nonlinearFields.classList.add("d-none");
-
-            reqC.forEach(id => {
-                const el = document.getElementById(id);
-                if (el) el.setAttribute("required", "");
-            });
-            reqNL.forEach(id => {
-                const el = document.getElementById(id);
-                if (el) el.removeAttribute("required");
-            });
-        } else {
-            if (classicalFields) classicalFields.classList.add("d-none");
-            if (classicalRadio) classicalRadio.classList.add("d-none");
-            if (nonlinearFields) nonlinearFields.classList.remove("d-none");
-
-            reqC.forEach(id => {
-                const el = document.getElementById(id);
-                if (el) el.removeAttribute("required");
-            });
-            reqNL.forEach(id => {
-                const el = document.getElementById(id);
-                if (el) el.setAttribute("required", "");
-            });
-        }
+    const sync = () => {
+        const isClassical = selectedFormType.value === "classical";
+        classicalFields.disabled = !isClassical;
+        classicalFields.hidden = !isClassical;
+        classicalRadio.disabled = !isClassical;
+        classicalRadio.hidden = !isClassical;
+        nonlinearFields.disabled = isClassical;
+        nonlinearFields.hidden = isClassical;
     };
-    formType.addEventListener("change", update);
-    update();
+    selectedFormType.addEventListener("change", sync);
+    sync();
 }
 
-// Wait for DOM to load
+function initUpdateForm() {
+    const selectedRole = document.getElementById("selectedRole");
+    const reportFields = document.getElementById("reportFields");
+    const sync = () => {
+        const isParticipant = selectedRole.value === "participant";
+        reportFields.disabled = !isParticipant;
+        reportFields.hidden = !isParticipant;
+    };
+    selectedRole.addEventListener("change", sync);
+    sync();
+    initUpdateFormType();
+}
+
+function initUpdateFile() {
+    const reportFileInput = document.getElementById("reportFileInput");
+    const reportFileName = document.getElementById("reportFileName");
+    const sync = () => {
+        const fileName = reportFileInput.files[0]?.name ?? "No file chosen";
+        reportFileName.textContent = fileName;
+    };
+    reportFileInput.addEventListener("change", sync);
+}
+
 document.addEventListener("DOMContentLoaded", function () {
-    updateForm();
-    updateFormType();
+    initUpdateForm();
+    initUpdateFile();
 });
     </script>
 {% endblock %}

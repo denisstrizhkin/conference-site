@@ -55,7 +55,9 @@
                         </td>
                         <td>
                             {% if user.role != "admin" %}
-                                <form action="/user/{{ user.id }}/delete" method="post" onsubmit="return confirm('Вы уверены, что хотите удалить этого пользователя?');">
+                                <form action="/user/{{ user.id }}/delete"
+                                      method="post"
+                                      onsubmit="return confirm('Вы уверены, что хотите удалить этого пользователя?');">
                                     <button type="submit" class="btn btn-danger btn-sm">Удалить</button>
                                 </form>
                             {% endif %}
