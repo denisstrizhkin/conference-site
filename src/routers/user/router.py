@@ -52,6 +52,8 @@ async def post_account(
     form: Annotated[UserForm, Form()],
 ):
     allowed_id_or_roles(current_user, user_id, [UserRole.admin])
+    if form.role == UserRole.admin and current_user.role != UserRole.admin:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
     user, file = await user_controller.update_from_user_form(user_id, form)
     return templates.render(
         "form/reg.jinja",
