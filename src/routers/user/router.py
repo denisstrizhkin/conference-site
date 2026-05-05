@@ -2,7 +2,7 @@ import urllib
 from io import BytesIO
 from typing import Annotated
 
-from fastapi import APIRouter, Form
+from fastapi import APIRouter, Form, HTTPException
 from fastapi.responses import HTMLResponse, StreamingResponse
 from openpyxl import Workbook
 
